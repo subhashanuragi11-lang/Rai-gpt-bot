@@ -701,6 +701,12 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 #                           SECTION 12: INITIALIZATION
 # ==============================================================================
 
+# ... (Upar ka code same rahega) ...
+
+# ==============================================================================
+#                           SECTION 12: INITIALIZATION
+# ==============================================================================
+
 async def post_init(app: Application):
     """Sets bot menu commands on startup."""
     commands = [
@@ -716,6 +722,7 @@ def main():
     print("🚀 INITIALIZING RAI GPT PRO...")
     
     # 1. Start Flask Server (Threaded)
+    # Daemon=True zaroori hai taaki main thread band hone par ye bhi band ho
     threading.Thread(target=run_flask, daemon=True).start()
     print("✅ Web Server Started (24/7 Mode)")
     
@@ -740,7 +747,8 @@ def main():
     app.add_handler(CallbackQueryHandler(callback_handler))
     
     print("✅ Bot is Live & Polling!")
-    app.run_polling()
+    app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
+    main()
     main()
