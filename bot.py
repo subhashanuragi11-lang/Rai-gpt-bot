@@ -117,7 +117,7 @@ class SystemConfig:
     """
     
     # --- IDENTITY ---
-    TOKEN = "8203679051:AAGjJ6sMUBW5XWEzV8268T61sJL6j2vFLT0"
+    TOKEN = "8203679051:AAFDEDadYZZHzD-6gvign3WWVcTFbYRTLL4"
     OWNER_ID = 6406769029
     OWNER_USERNAME = "@PixDev_Rai"
     BOT_NAME = "Rai GPT Godspeed"
