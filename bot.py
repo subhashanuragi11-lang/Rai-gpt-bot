@@ -4,52 +4,43 @@
 """
 ====================================================================================================
 ||                                                                                                ||
-||                            PROJECT: RAI GPT - OMEGA TITAN EDITION                              ||
-||                        "The Ultimate AI Infrastructure for Telegram"                           ||
+||                       PROJECT: RAI GPT - ULTIMATE ENTERPRISE EDITION                           ||
+||                   "The Most Advanced AI Infrastructure on Telegram"                            ||
 ||                                                                                                ||
 ====================================================================================================
 ||                                                                                                ||
-||  VERSION:        100.0 (God Build)                                                             ||
+||  VERSION:        100.0.5 (Titanium Build)                                                      ||
+||  CODENAME:       "LEVIATHAN"                                                                   ||
 ||  DEVELOPER:      @PixDev_Rai                                                                   ||
 ||  OWNER ID:       6406769029                                                                    ||
-||  LICENSE:        Enterprise Proprietary (Closed Source)                                        ||
+||  LICENSE:        Proprietary (Private Use Only)                                                ||
 ||  FRAMEWORK:      Python Telegram Bot (v21.x) + Flask Microservice                              ||
+||  ARCHITECTURE:   Modular Object-Oriented Design (MOOD)                                         ||
 ||                                                                                                ||
 ====================================================================================================
 
-[ SYSTEM ARCHITECTURE DOCUMENTATION ]
+[ TABLE OF CONTENTS ]
 
-1.  CORE KERNEL LAYER
-    - Manages the event loop, signal handling, and thread synchronization.
-    - Handles graceful shutdowns and auto-restarts on critical failures.
-
-2.  DATA PERSISTENCE LAYER (ACID)
-    - Custom JSON Database Engine with atomic write operations.
-    - Automated corruption detection and backup restoration.
-    - Transaction logging for credits and premium plans.
-
-3.  NEURAL INTERFACE (AI BRIDGE)
-    - High-Bandwidth connection to Pollinations AI.
-    - Implements 'Smart Context Truncation' to handle infinite conversation depth.
-    - Features 'Auto-Retry' and 'Failover' mechanisms for 99.9% uptime.
-
-4.  SECURITY & FIREWALL MATRIX
-    - DDoS Protection (Token Bucket Algorithm).
-    - User Authentication (Force Sub Verification).
-    - Admin-Level Ban/Unban Protocols.
-
-5.  COMMERCE & BILLING ENGINE
-    - Virtual Currency (Credits) management.
-    - Invoice Generation and Plan Lifecycle management.
-    - Premium Tier Logic (Free vs VIP vs God Mode).
-
-6.  UI/UX RENDERER
-    - Generates dynamic HTML-based rich text messages.
-    - Multi-Language Support menus.
-    - Real-time Server Health Diagnostics.
+1.  SYSTEM IMPORTS & DEPENDENCIES
+2.  GLOBAL CONFIGURATION KERNEL
+3.  ADVANCED LOGGING SUBSYSTEM
+4.  LOCALIZATION ENGINE (MULTI-LANGUAGE SUPPORT)
+5.  ACID-COMPLIANT DATABASE ENGINE
+6.  SECURITY & FIREWALL MATRIX
+7.  COMMERCE & BILLING GATEWAY
+8.  NEURAL NETWORK INTERFACE (AI BRIDGE)
+9.  PROJECT BUILDER & ZIP COMPRESSOR
+10. SYSTEM MONITOR & HEALTH CHECK
+11. WEB SERVER (KEEP-ALIVE)
+12. TELEGRAM EVENT HANDLERS
+13. MAIN EXECUTION LOOP
 
 ====================================================================================================
 """
+
+# ==============================================================================
+#                           1. SYSTEM IMPORTS
+# ==============================================================================
 
 import os
 import sys
@@ -68,97 +59,102 @@ import random
 import platform
 import uuid
 import math
+import zipfile
+import io
+import hashlib
 from typing import List, Dict, Any, Optional, Union, Tuple
 
-# ------------------------------------------------------------------------------
-#                               WEB SERVER DEPENDENCIES
-# ------------------------------------------------------------------------------
+# Web Server Framework
 from flask import Flask, jsonify, request, make_response
 
-# ------------------------------------------------------------------------------
-#                               SYSTEM UTILITIES
-# ------------------------------------------------------------------------------
+# System Utilities
 try:
     import psutil
 except ImportError:
     psutil = None
 
-# ------------------------------------------------------------------------------
-#                            TELEGRAM API DEPENDENCIES
-# ------------------------------------------------------------------------------
-from telegram import (
-    Update, 
-    InlineKeyboardButton, 
-    InlineKeyboardMarkup, 
-    BotCommand,
-    MenuButtonCommands,
-    User,
-    Chat,
-    Message,
-    constants,
-    InputFile
-)
-from telegram.ext import (
-    ApplicationBuilder, 
-    CommandHandler, 
-    MessageHandler, 
-    CallbackQueryHandler, 
-    ContextTypes, 
-    Application, 
-    filters,
-    Defaults
-)
-from telegram.constants import ParseMode, ChatAction
-from telegram.error import (
-    BadRequest, 
-    Forbidden, 
-    NetworkError, 
-    TelegramError,
-    TimedOut,
-    Conflict
-)
+# Telegram API Framework
+try:
+    from telegram import (
+        Update, 
+        InlineKeyboardButton, 
+        InlineKeyboardMarkup, 
+        BotCommand,
+        MenuButtonCommands,
+        User,
+        Chat,
+        Message,
+        constants,
+        InputFile
+    )
+    from telegram.ext import (
+        ApplicationBuilder, 
+        CommandHandler, 
+        MessageHandler, 
+        CallbackQueryHandler, 
+        ContextTypes, 
+        Application, 
+        filters,
+        Defaults
+    )
+    from telegram.constants import ParseMode, ChatAction
+    from telegram.error import (
+        BadRequest, 
+        Forbidden, 
+        NetworkError, 
+        TelegramError,
+        TimedOut,
+        Conflict
+    )
+except ImportError:
+    print("CRITICAL ERROR: 'python-telegram-bot' is missing. Install requirements.txt")
+    sys.exit(1)
 
 # ==============================================================================
-#                           SECTION 1: SYSTEM CONFIGURATION
+#                           2. CONFIGURATION KERNEL
 # ==============================================================================
 
 class SystemConfig:
     """
-    GLOBAL CONFIGURATION CONTROLLER.
-    Serves as the central registry for all static constants, API keys, and settings.
+    Central Configuration Controller.
+    Manages identity, filesystem paths, security parameters, and AI settings.
     """
     
-    # ------------------- IDENTITY -------------------
+    # --- IDENTITY ---
     TOKEN = "8203679051:AAHJCgR-LE06jKind0-Rej4fMRFYKR3XISQ"
     OWNER_ID = 6406769029
     OWNER_USERNAME = "@PixDev_Rai"
-    BOT_NAME = "Rai GPT Omega"
-    VERSION = "100.0.1"
+    BOT_NAME = "Rai GPT Titan"
+    VERSION = "100.0.5"
     
-    # ------------------- FILESYSTEM -------------------
-    DB_FILE = "rai_god_db.json"
-    LOG_FILE = "rai_god_server.log"
-    BACKUP_FILE = "rai_god_backup.json"
+    # --- FILESYSTEM ---
+    DB_FILE = "rai_titan_db.json"
+    LOG_FILE = "titan_server.log"
+    BACKUP_DIR = "./backups/"
     
-    # ------------------- SECURITY -------------------
+    # --- SECURITY ---
     FORCE_SUB_ENABLED = True
     CHANNEL_USERNAME = "@raiaddaarmys"
     CHANNEL_LINK = "https://t.me/raiaddaarmys"
     ADMIN_LIST = [6406769029]
     
-    # ------------------- AI PARAMETERS -------------------
-    # Using Pollinations AI (Text Model)
+    # --- AI ENGINE ---
     AI_PROVIDER_URL = "https://text.pollinations.ai/"
-    REQUEST_TIMEOUT = 180  # 3 Minutes timeout
-    MAX_HISTORY_DEPTH = 8  # Limit history to prevent URL overflow
-    RETRY_ATTEMPTS = 3     # Number of retries on failure
+    REQUEST_TIMEOUT = 180  # 3 Minutes
+    MAX_HISTORY_DEPTH = 10
+    RETRY_ATTEMPTS = 3
     
-    # ------------------- ECONOMY -------------------
+    # --- ECONOMY ---
     STARTING_CREDITS = 5
     REFERRAL_REWARD = 2
     DAILY_BONUS = 1
+    CURRENCY_SYMBOL = "₹"
     
-    # ------------------- SYSTEM PROMPT -------------------
+    # --- LIMITS ---
+    FREE_TIER_CHAR_LIMIT = 5000  # Characters
+    PREMIUM_TIER_CHAR_LIMIT = 100000 # Characters
+    
+    # --- PROMPTS ---
     SYSTEM_INSTRUCTION = (
         f"You are {BOT_NAME}, an Elite AI Coding Architect developed by {OWNER_USERNAME}. "
         "Your purpose is to generate Massive, Complex, and Error-Free Code.\n\n"
@@ -171,66 +167,64 @@ class SystemConfig:
     )
 
 # ==============================================================================
-#                           SECTION 2: LOGGING INFRASTRUCTURE
+#                           3. LOGGING SUBSYSTEM
 # ==============================================================================
 
-class LogEngine:
+class LogManager:
     """
     Advanced Logging System.
     Captures debug traces, info logs, and critical errors to both file and console.
     """
     @staticmethod
-    def init():
-        log_formatter = logging.Formatter(
-            '[%(asctime)s] [%(levelname)s] [%(module)s] - %(message)s',
+    def initialize():
+        log_format = logging.Formatter(
+            '[%(asctime)s] [%(levelname)s] [%(module)s:%(funcName)s] - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
         )
         
         root_logger = logging.getLogger()
         root_logger.setLevel(logging.INFO)
         
-        # File Handler
+        # File Handler (Persistent Logs)
         file_handler = logging.FileHandler(SystemConfig.LOG_FILE, encoding='utf-8')
-        file_handler.setFormatter(log_formatter)
+        file_handler.setFormatter(log_format)
         root_logger.addHandler(file_handler)
         
-        # Console Handler
+        # Console Handler (Live Logs)
         console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setFormatter(log_formatter)
+        console_handler.setFormatter(log_format)
         root_logger.addHandler(console_handler)
         
-        logging.info(">>> GOD MODE KERNEL INITIALIZED SUCCESSFULLY <<<")
+        logging.info(">>> GOD MODE KERNEL INITIALIZED <<<")
 
-# Initialize Logger
-LogEngine.init()
+# Initialize Logger immediately
+LogManager.initialize()
 logger = logging.getLogger("RaiGPT_Kernel")
 
 # ==============================================================================
-#                           SECTION 3: ASSET MANAGER (UI TEXTS)
+#                           4. LOCALIZATION ENGINE
 # ==============================================================================
 
-class TextAssets:
+class LanguagePack:
     """
-    Contains all static text strings, ASCII art, and HTML templates.
-    Designed for maximum visual appeal and clarity.
+    Manages multi-language support (English/Hindi).
+    Stores all static text assets used by the UI.
     """
     
-    WELCOME_HEADER = f"""
+    class EN:
+        WELCOME = """
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    🧠 <b>{SystemConfig.BOT_NAME} DASHBOARD</b>    ┃
+┃    🧠 <b>{bot} ENTERPRISE</b>      ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-"""
 
-    WELCOME_BODY = """
 👋 <b>Greetings, {name}!</b>
 
 ID: <code>{uid}</code>
-Status: 🟢 <b>Online</b>
-Credits: <code>{credits}</code>
 Plan: <b>{plan}</b>
+Credits: <code>{credits}</code>
 
 I am the <b>Titanium Edition AI</b>. 
-I am engineered to solve complex programming challenges, debug errors, and architect software solutions.
+I specialize in generating <b>Massive Projects</b> and converting them into ZIP files.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🛠️ <b>SYSTEM MODULES:</b>
@@ -238,17 +232,11 @@ I am engineered to solve complex programming challenges, debug errors, and archi
 🟢 <b>AI Generator</b> - <code>/rai [query]</code>
    <i>Generate Python, Java, C++, Web Code.</i>
 
-🟡 <b>Memory Core</b> - <code>/new</code>
-   <i>Wipe context memory for a fresh start.</i>
+📦 <b>Project Builder</b>
+   <i>Automatically zips large codebases.</i>
 
-🔵 <b>User Hub</b> - <code>/me</code>
-   <i>View stats, credits, and referrals.</i>
-
-🟣 <b>System Health</b> - <code>/sysinfo</code>
-   <i>View server RAM/CPU usage.</i>
-
-🟠 <b>Premium Store</b> - <code>/premium</code>
-   <i>Buy credits and unlock features.</i>
+💎 <b>Premium Core</b>
+   <i>Unlocks 2000+ Line generation.</i>
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 👤 <b>Developer:</b> {owner}
@@ -256,122 +244,79 @@ I am engineered to solve complex programming challenges, debug errors, and archi
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 👇 <b>INITIALIZE PROTOCOL:</b>
 """
+        FORCE_SUB = "🛑 <b>ACCESS DENIED!</b>\nPlease join our channel to use this bot."
+        BANNED = "🚫 <b>You are BANNED from using this bot.</b>"
+        MAINTENANCE = "🚧 <b>System Maintenance in Progress...</b>"
+        HELP = "📚 <b>Help Menu</b>\n\nUse /rai <query> to generate code.\nUse /new to clear memory."
+        INVOICE = "🧾 <b>INVOICE GENERATED</b>\nAmount: {amount}\nPay to: {owner}"
+        
+    class HI:
+        WELCOME = """
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃    🧠 <b>{bot} एंटरप्राइज़</b>        ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-    FORCE_SUB = """
-🛑 <b>ACCESS DENIED: VERIFICATION PENDING</b>
+👋 <b>नमस्ते, {name}!</b>
 
-⚠️ <b>User Attention Required!</b>
+ID: <code>{uid}</code>
+प्लान: <b>{plan}</b>
+क्रेडिट्स: <code>{credits}</code>
 
-To utilize the high-performance computing power of <b>{bot}</b>, you must verify your membership in our official network.
-This ensures server stability and community growth.
+मैं <b>Titanium Edition AI</b> हूँ।
+मैं बड़े प्रोजेक्ट्स बना सकता हूँ और उन्हें ZIP फाइल में बदल सकता हूँ।
 
-👇 <b>Please join the channel below to unlock:</b>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🛠️ <b>सिस्टम मॉड्यूल:</b>
+
+🟢 <b>AI जेनरेटर</b> - <code>/rai [सवाल]</code>
+   <i>Python, Java, C++ कोड लिखें।</i>
+
+📦 <b>प्रोजेक्ट बिल्डर</b>
+   <i>बड़े कोड को ZIP फाइल में बदलता है।</i>
+
+💎 <b>प्रीमियम कोर</b>
+   <i>2000+ लाइन कोड अनलॉक करें।</i>
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👤 <b>डेवलपर:</b> {owner}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👇 <b>शुरू करने के लिए क्लिक करें:</b>
 """
+        FORCE_SUB = "🛑 <b>एक्सेस बंद है!</b>\nकृपया पहले हमारा चैनल जॉइन करें।"
+        BANNED = "🚫 <b>आपको इस बॉट से बैन कर दिया गया है।</b>"
+        MAINTENANCE = "🚧 <b>सिस्टम में काम चल रहा है...</b>"
+        HELP = "📚 <b>मदद मेनू</b>\n\nकोड के लिए /rai <सवाल> का उपयोग करें।"
+        INVOICE = "🧾 <b>बिल जेनरेट हुआ</b>\nराशि: {amount}\nपेमेंट करें: {owner}"
 
-    HELP_MAIN = """
-📚 <b>OPERATIONAL MANUAL & DOCUMENTATION</b>
-
-Please select a category below to view detailed documentation.
-
-1️⃣ <b>General Commands</b>
-   - Basic usage instructions.
-2️⃣ <b>Coding Assistance</b>
-   - How to generate complex scripts.
-3️⃣ <b>Account Management</b>
-   - Managing credits and profile.
-4️⃣ <b>Troubleshooting</b>
-   - Solving common errors.
-
-👨‍💻 <b>Support:</b> {owner}
-"""
-
-    HELP_CODING = """
-💻 <b>CODING ASSISTANCE GUIDE</b>
-
-<b>Syntax:</b> <code>/rai [language] [task]</code>
-
-<b>Examples:</b>
-• <code>/rai python telegram bot code with database</code>
-• <code>/rai html css modern login page</code>
-• <code>/rai java calculator class with gui</code>
-
-<b>Best Practices:</b>
-1. Be specific about libraries (e.g., "Use Flask").
-2. Mention the desired functionality clearly.
-3. If the code stops mid-way, type "continue".
-"""
-
-    HELP_ACCOUNT = """
-👤 <b>ACCOUNT MANAGEMENT GUIDE</b>
-
-<b>Check Profile:</b>
-Command: <code>/me</code>
-Action: Shows your User ID, Credits balance, and Join Date.
-
-<b>Clear Memory:</b>
-Command: <code>/new</code>
-Action: Resets the AI's short-term memory. Use this if the bot gets confused or you want to start a new topic.
-
-<b>Referral System:</b>
-Command: <code>/refer</code>
-Action: Get your unique link. Earn free credits when others join.
-"""
-
-    BANNED = """
-🚫 <b>ACCOUNT TERMINATED</b>
-
-Your access to this system has been permanently revoked by the administrator.
-<b>Reason:</b> Violation of Terms of Service.
-<b>Appeal:</b> Contact {owner}
-"""
-
-    MAINTENANCE = """
-🚧 <b>SERVER MAINTENANCE IN PROGRESS</b>
-
-The developer is currently deploying critical patches to the neural network.
-Service will resume shortly.
-
-<i>We apologize for the inconvenience.</i>
-"""
-
-    INVOICE_TEMPLATE = """
-🧾 <b>PROFORMA INVOICE</b>
---------------------------------
-<b>Invoice ID:</b> {inv_id}
-<b>Date:</b> {date}
-<b>User:</b> {user}
---------------------------------
-<b>Plan:</b> {plan_name}
-<b>Amount:</b> ₹{amount}
-<b>Status:</b> PENDING
---------------------------------
-👉 <b>Payment Instructions:</b>
-Contact {owner} to complete this transaction.
-Send screenshot of payment for activation.
-"""
+    @staticmethod
+    def get_text(lang_code: str, key: str, **kwargs) -> str:
+        """Retrieves text based on language code."""
+        lang_class = getattr(LanguagePack, lang_code.upper(), LanguagePack.EN)
+        text_template = getattr(lang_class, key, getattr(LanguagePack.EN, key))
+        return text_template.format(**kwargs)
 
 # ==============================================================================
-#                           SECTION 4: DATABASE ENGINE
+#                           5. DATABASE ENGINE
 # ==============================================================================
 
 class DatabaseEngine:
     """
     ACID-Compliant JSON Storage Engine.
-    Manages User Data, Transactions, System State, and Backup.
+    Manages User Data, Transactions, System State, and Backups.
     """
-    def __init__(self, path):
-        self.path = path
+    def __init__(self, filepath):
+        self.filepath = filepath
         self.lock = threading.Lock()
-        self.data = self._load()
+        self.data = self._load_db()
 
-    def _load(self) -> Dict:
+    def _load_db(self) -> Dict:
         """Loads database from disk. Creates new if missing."""
-        if not os.path.exists(self.path):
+        if not os.path.exists(self.filepath):
             logger.warning("Database Not Found. Creating New Schema.")
             return self._schema()
         
         try:
-            with open(self.path, 'r', encoding='utf-8') as f:
+            with open(self.filepath, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
             logger.critical(f"Database Corruption Detected: {e}")
@@ -383,16 +328,15 @@ class DatabaseEngine:
             "users": {},
             "banned": [],
             "invoices": [],
-            "tickets": [],
             "settings": {"maintenance": False},
-            "stats": {"total_requests": 0, "start_time": str(time.time())}
+            "stats": {"total_queries": 0, "start_time": str(time.time())}
         }
 
     def save(self):
         """Thread-safe write operation."""
         with self.lock:
             try:
-                with open(self.path, 'w', encoding='utf-8') as f:
+                with open(self.filepath, 'w', encoding='utf-8') as f:
                     json.dump(self.data, f, indent=4)
             except Exception as e:
                 logger.error(f"Save Failed: {e}")
@@ -405,18 +349,17 @@ class DatabaseEngine:
                 "profile": {
                     "name": user.first_name,
                     "username": user.username,
-                    "joined": str(datetime.datetime.now())
+                    "joined": str(datetime.datetime.now()),
+                    "lang": "EN"
                 },
                 "wallet": {
                     "credits": SystemConfig.STARTING_CREDITS,
                     "plan": "Free",
-                    "referrals": 0,
-                    "referred_by": None
+                    "is_premium": False
                 },
                 "history": [],
                 "meta": {
-                    "last_active": str(datetime.datetime.now()),
-                    "platform": "Telegram"
+                    "last_active": str(datetime.datetime.now())
                 }
             }
             self.save()
@@ -425,37 +368,41 @@ class DatabaseEngine:
     def get_user(self, user_id):
         return self.data["users"].get(str(user_id))
 
-    def update_activity(self, user_id):
+    def update_credits(self, user_id, amount):
         uid = str(user_id)
         if uid in self.data["users"]:
-            self.data["users"][uid]["meta"]["last_active"] = str(datetime.datetime.now())
-            # Optimize: Don't save on every activity to reduce IO
-    
-    # --- Context Memory ---
+            self.data["users"][uid]["wallet"]["credits"] += amount
+            self.save()
+
+    def set_premium(self, user_id, status: bool):
+        uid = str(user_id)
+        if uid in self.data["users"]:
+            self.data["users"][uid]["wallet"]["is_premium"] = status
+            self.data["users"][uid]["wallet"]["plan"] = "Titanium" if status else "Free"
+            self.save()
+
+    # --- History Management ---
     def add_history(self, user_id, role, content):
         uid = str(user_id)
         if uid in self.data["users"]:
-            hist = self.data["users"][uid]["history"]
+            hist = self.data["users"][uid].get("history", [])
             hist.append({"role": role, "content": content})
-            
-            # Context Pruning
             if len(hist) > SystemConfig.MAX_HISTORY_DEPTH:
                 hist = hist[-SystemConfig.MAX_HISTORY_DEPTH:]
-            
             self.data["users"][uid]["history"] = hist
-            self.data["stats"]["total_requests"] += 1
+            self.data["stats"]["total_queries"] += 1
             self.save()
 
     def get_history(self, user_id):
         return self.data["users"].get(str(user_id), {}).get("history", [])
 
-    def wipe_history(self, user_id):
+    def clear_history(self, user_id):
         uid = str(user_id)
         if uid in self.data["users"]:
             self.data["users"][uid]["history"] = []
             self.save()
 
-    # --- Security & Bans ---
+    # --- Security Management ---
     def ban_user(self, user_id, status: bool):
         uid = int(user_id)
         if status:
@@ -472,9 +419,9 @@ class DatabaseEngine:
     def get_all_ids(self):
         return list(self.data["users"].keys())
 
-    # --- Commerce & Invoices ---
+    # --- Invoice Management ---
     def create_invoice(self, user_id, amount, plan):
-        inv_id = f"INV-{int(time.time())}-{random.randint(100,999)}"
+        inv_id = f"INV-{int(time.time())}-{random.randint(1000,9999)}"
         invoice = {
             "id": inv_id,
             "user_id": user_id,
@@ -490,7 +437,7 @@ class DatabaseEngine:
 db = DatabaseEngine(SystemConfig.DB_FILE)
 
 # ==============================================================================
-#                           MODULE 5: SECURITY FIREWALL
+#                           6. SECURITY & FIREWALL MATRIX
 # ==============================================================================
 
 class SecurityLayer:
@@ -520,6 +467,7 @@ class SecurityLayer:
 
     @staticmethod
     async def verify_subscription(user_id: int, bot) -> bool:
+        """Checks if user has joined the required channel."""
         if not SystemConfig.FORCE_SUB_ENABLED: return True
         try:
             member = await bot.get_chat_member(SystemConfig.CHANNEL_USERNAME, user_id)
@@ -527,12 +475,63 @@ class SecurityLayer:
             return True
         except Exception as e:
             logger.warning(f"Subscription Check Warning: {e}")
-            return True # Fail open
+            return True # Fail open to avoid blocking valid users if bot isn't admin
 
 security = SecurityLayer()
 
 # ==============================================================================
-#                           MODULE 6: NEURAL NET (AI ENGINE)
+#                           7. PROJECT BUILDER (ZIP ENGINE)
+# ==============================================================================
+
+class ProjectBuilder:
+    """
+    Handles file generation and compression for large codebases.
+    """
+    @staticmethod
+    def detect_language(code: str) -> str:
+        if "def " in code or "import " in code: return "py"
+        if "function" in code or "const " in code: return "js"
+        if "public class" in code: return "java"
+        if "<html>" in code: return "html"
+        return "txt"
+
+    @staticmethod
+    def create_zip(code_content: str, prompt: str) -> Any:
+        """
+        Creates an in-memory ZIP file containing the code.
+        Returns BytesIO object ready for Telegram upload.
+        """
+        zip_buffer = io.BytesIO()
+        ext = ProjectBuilder.detect_language(code_content)
+        
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+            # Main Code File
+            zf.writestr(f"main.{ext}", code_content)
+            
+            # Requirements (if Python)
+            if ext == "py":
+                reqs = "requests\nflask\npython-telegram-bot\ngunicorn"
+                zf.writestr("requirements.txt", reqs)
+            
+            # Readme
+            readme = f"""
+PROJECT GENERATED BY {SystemConfig.BOT_NAME}
+--------------------------------------------
+Prompt: {prompt}
+Date: {datetime.datetime.now()}
+Developer: {SystemConfig.OWNER_USERNAME}
+
+Instructions:
+1. Extract files.
+2. Run main.{ext}
+            """
+            zf.writestr("README.txt", readme)
+            
+        zip_buffer.seek(0)
+        return zip_buffer
+
+# ==============================================================================
+#                           8. NEURAL NET (AI ENGINE)
 # ==============================================================================
 
 class NeuralNet:
@@ -556,8 +555,7 @@ class NeuralNet:
         # 1. Build Context
         context_str = ""
         for m in history:
-            role = "User" if m['role'] == 'user' else "AI"
-            context_str += f"{role}: {m['content']}\n"
+            context_str += f"{'User' if m['role']=='user' else 'AI'}: {m['content']}\n"
 
         full_payload = (
             f"{SystemConfig.SYSTEM_INSTRUCTION}\n\n"
@@ -576,13 +574,13 @@ class NeuralNet:
             try:
                 # Pollinations uses GET with encoded string in URL
                 encoded = requests.utils.quote(full_payload)
-                request_url = f"{self.url}{encoded}"
+                url = f"{self.url}{encoded}"
                 
                 # Check absolute URL limit
-                if len(request_url) > 6000:
-                    return "❌ **Error:** Request too long. Please try asking a shorter question or use /new."
+                if len(url) > 6000:
+                    return "OVERFLOW"
 
-                response = self.session.get(request_url, timeout=SystemConfig.REQUEST_TIMEOUT)
+                response = self.session.get(url, timeout=SystemConfig.REQUEST_TIMEOUT)
                 
                 if response.status_code == 200:
                     text = response.text
@@ -599,7 +597,7 @@ class NeuralNet:
 brain = NeuralNet()
 
 # ==============================================================================
-#                           MODULE 7: SYSTEM MONITOR
+#                           9. SYSTEM MONITOR
 # ==============================================================================
 
 class SysMon:
@@ -611,42 +609,13 @@ class SysMon:
         if psutil:
             cpu = psutil.cpu_percent()
             ram = psutil.virtual_memory().percent
-            return f"CPU: {cpu}% | RAM: {ram}%"
+            boot = datetime.datetime.fromtimestamp(psutil.boot_time()).strftime("%Y-%m-%d %H:%M")
+            return f"CPU: {cpu}% | RAM: {ram}% | Boot: {boot}"
         # Simulation for environments without psutil
         return f"CPU: {random.randint(10,30)}% | RAM: {random.randint(40,60)}% (Virtual)"
 
 # ==============================================================================
-#                           MODULE 8: UTILITIES
-# ==============================================================================
-
-class Utils:
-    @staticmethod
-    def split_text(text: str, limit=4000) -> List[str]:
-        """
-        Smartly splits text preserving Markdown code blocks.
-        """
-        if len(text) <= limit: return [text]
-        parts = []
-        while len(text) > 0:
-            if len(text) > limit:
-                # Try splitting at code block end
-                split_at = text.rfind('```', 0, limit)
-                # Try double newline
-                if split_at == -1: split_at = text.rfind('\n\n', 0, limit)
-                # Try single newline
-                if split_at == -1: split_at = text.rfind('\n', 0, limit)
-                # Hard limit
-                if split_at == -1: split_at = limit
-                
-                parts.append(text[:split_at])
-                text = text[split_at:]
-            else:
-                parts.append(text)
-                text = ""
-        return parts
-
-# ==============================================================================
-#                           MODULE 9: WEB SERVER (24/7 UPTIME)
+#                           10. WEB SERVER (24/7)
 # ==============================================================================
 
 app = Flask(__name__)
@@ -657,76 +626,99 @@ def index():
         "status": "online",
         "bot": SystemConfig.BOT_NAME,
         "version": SystemConfig.VERSION,
-        "uptime": str(datetime.datetime.now())
+        "timestamp": str(datetime.datetime.now())
     })
 
 def run_server():
-    """Runs Flask in a background thread."""
+    """Starts the Flask microservice."""
     port = int(os.environ.get("PORT", 8080))
-    # Suppress Flask CLI logs
     import logging as flask_logging
     flask_logging.getLogger('werkzeug').setLevel(flask_logging.ERROR)
     app.run(host="0.0.0.0", port=port)
 
 # ==============================================================================
-#                           MODULE 10: BOT HANDLERS
+#                           11. UTILITIES
+# ==============================================================================
+
+class Utils:
+    @staticmethod
+    def split_text(text: str, limit=4000) -> List[str]:
+        """Smartly splits text preserving Markdown code blocks."""
+        if len(text) <= limit: return [text]
+        parts = []
+        while len(text) > 0:
+            if len(text) > limit:
+                split_at = text.rfind('```', 0, limit)
+                if split_at == -1: split_at = text.rfind('\n', 0, limit)
+                if split_at == -1: split_at = limit
+                parts.append(text[:split_at])
+                text = text[split_at:]
+            else:
+                parts.append(text)
+                text = ""
+        return parts
+
+    @staticmethod
+    def count_lines(text):
+        return len(text.split('\n'))
+
+# ==============================================================================
+#                           12. BOT HANDLERS
 # ==============================================================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     db.register_user(user)
     
-    # Check Ban
+    # 1. Ban Check
     if db.is_banned(user.id):
-        await update.message.reply_text(TextAssets.BANNED.format(owner=SystemConfig.OWNER_USERNAME), parse_mode=ParseMode.HTML)
+        await update.message.reply_text(LanguagePack.EN.BANNED, parse_mode=ParseMode.HTML)
         return
 
-    # Check Force Sub
+    # 2. Force Sub Check
     if not await SecurityLayer.verify_subscription(user.id, context.bot):
-        txt = TextAssets.FORCE_SUB.format(bot=SystemConfig.BOT_NAME)
         kb = [[InlineKeyboardButton("🚀 JOIN CHANNEL", url=SystemConfig.CHANNEL_LINK)],
-              [InlineKeyboardButton("✅ VERIFY JOIN", callback_data="verify_sub")]]
-        await update.message.reply_text(txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
+              [InlineKeyboardButton("✅ VERIFY", callback_data="verify_sub")]]
+        await update.message.reply_text(
+            LanguagePack.EN.FORCE_SUB.format(bot=SystemConfig.BOT_NAME), 
+            parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb)
+        )
         return
 
+    # 3. Load User Data
     u_data = db.get_user(user.id)
-    credits = u_data['wallet']['credits']
-    plan = u_data['wallet']['plan']
+    plan = "TITANIUM 💎" if u_data['wallet']['is_premium'] else "FREE"
     
+    # 4. Generate Welcome Message
     txt = TextAssets.WELCOME_BODY.format(
         name=html.escape(user.first_name),
         uid=user.id,
-        credits=credits,
         plan=plan,
+        credits=u_data['wallet']['credits'],
         owner=SystemConfig.OWNER_USERNAME,
         version=SystemConfig.VERSION,
-        time=datetime.datetime.now().strftime("%H:%M")
+        bot=SystemConfig.BOT_NAME
     )
     
     kb = [
         [InlineKeyboardButton("🤖 Generate Code", switch_inline_query_current_chat="/rai ")],
-        [InlineKeyboardButton("👤 Profile", callback_data="me"), InlineKeyboardButton("🆘 Help", callback_data="help_main")]
+        [InlineKeyboardButton("💎 Premium", callback_data="premium"), InlineKeyboardButton("👤 Profile", callback_data="me")],
+        [InlineKeyboardButton("🆘 Help", callback_data="help_main")]
     ]
     
     if update.callback_query:
-        await update.callback_query.edit_message_text(txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
+        await update.callback_query.edit_message_text(TextAssets.WELCOME_HEADER + txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
     else:
         await update.message.reply_text(TextAssets.WELCOME_HEADER + txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
 
-async def help_router(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Routes the help menu selection."""
-    txt = TextAssets.HELP_MAIN.format(owner=SystemConfig.OWNER_USERNAME)
-    kb = [
-        [InlineKeyboardButton("1️⃣ General", callback_data="help_gen"), InlineKeyboardButton("2️⃣ Coding", callback_data="help_code")],
-        [InlineKeyboardButton("3️⃣ Account", callback_data="help_acc"), InlineKeyboardButton("🔙 Home", callback_data="home")]
-    ]
-    await update.message.reply_text(txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
-
 async def rai_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    Main AI Logic with Zip Support.
+    """
     user = update.effective_user
     chat_id = update.effective_chat.id
     
-    # Security Checks
+    # Validation
     if db.is_banned(user.id): return
     if not await SecurityLayer.verify_subscription(user.id, context.bot):
         await update.message.reply_text("❌ Join Channel First!", parse_mode=ParseMode.HTML)
@@ -735,61 +727,72 @@ async def rai_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ <b>Slow Down!</b> Too many requests.", parse_mode=ParseMode.HTML)
         return
 
-    # Input Validation
     if not context.args:
         await update.message.reply_text("⚠️ <b>Usage:</b> <code>/rai python code</code>", parse_mode=ParseMode.HTML)
         return
 
     prompt = " ".join(context.args)
-    db.update_activity(user.id)
-    
-    # UI Feedback
-    msg = await update.message.reply_text(f"🧠 <b>Thinking...</b>\n<i>{html.escape(prompt[:30])}...</i>", parse_mode=ParseMode.HTML)
+    status_msg = await update.message.reply_text("🧠 <b>Architecting Solution...</b>", parse_mode=ParseMode.HTML)
     await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
 
     try:
-        # AI Generation
+        # Generate Code
         hist = db.get_history(user.id)
-        resp = await asyncio.get_running_loop().run_in_executor(None, brain.generate, prompt, hist)
+        response = await asyncio.get_running_loop().run_in_executor(None, brain.generate, prompt, hist)
         
-        # Save & Send
-        db.add_history(user.id, "user", prompt)
-        db.add_history(user.id, "ai", resp)
-        
-        parts = Utils.split_text(resp)
-        await msg.delete()
-        
-        for p in parts:
-            try: await update.message.reply_text(p, parse_mode=ParseMode.MARKDOWN)
-            except: await update.message.reply_text(p, parse_mode=ParseMode.HTML)
-            
+        if response == "ERROR":
+            await status_msg.edit_text("❌ System Error. Try again.")
+            return
+        elif response == "OVERFLOW":
+            await status_msg.edit_text("❌ Request too massive. Use <code>/new</code>.", parse_mode=ParseMode.HTML)
+            return
+
+        # Analyze Response
+        char_count = len(response)
+        u_data = db.get_user(user.id)
+        is_premium = u_data['wallet']['is_premium'] or user.id == SystemConfig.OWNER_ID
+
+        await status_msg.delete()
+
+        # LOGIC: If code > 5000 chars, send ZIP. Else send Text.
+        if char_count > SystemConfig.FREE_TIER_CHAR_LIMIT and not is_premium:
+            # Upsell Premium
+            txt = TextAssets.PREMIUM_LOCK.format(
+                lines=Utils.count_lines(response),
+                price=SystemConfig.PREMIUM_PRICE,
+                owner=SystemConfig.OWNER_USERNAME
+            )
+            kb = [[InlineKeyboardButton("💎 BUY PREMIUM", callback_data="premium")]]
+            await update.message.reply_text(txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
+            return
+
+        # ZIP Logic for large files
+        if char_count > 2000:
+            zip_buffer = ProjectBuilder.create_zip(response, prompt)
+            file_name = f"Project_{int(time.time())}.zip"
+            caption = f"📦 <b>Project Built</b>\nLines: {Utils.count_lines(response)}\nUser: {user.first_name}"
+            await update.message.reply_document(
+                document=zip_buffer,
+                filename=file_name,
+                caption=caption,
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            # Text Logic for small snippets
+            db.add_history(user.id, "user", prompt)
+            db.add_history(user.id, "ai", response)
+            try:
+                await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN)
+            except:
+                await update.message.reply_text(response, parse_mode=ParseMode.HTML)
+
     except Exception as e:
         logger.error(f"Handler Error: {e}")
-        await msg.edit_text("❌ System Error.", parse_mode=ParseMode.HTML)
+        traceback.print_exc()
+        await context.bot.send_message(chat_id=chat_id, text="❌ <b>Critical Error.</b>", parse_mode=ParseMode.HTML)
 
-async def new_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    db.wipe_history(update.effective_user.id)
-    await update.message.reply_text("🧹 <b>Memory Wiped.</b>", parse_mode=ParseMode.HTML)
-
-async def me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    u = db.get_user(update.effective_user.id)
-    if not u: return
-    txt = f"""
-👤 <b>USER PROFILE</b>
--------------------------
-ID: <code>{update.effective_user.id}</code>
-Name: {html.escape(u['profile']['name'])}
-Plan: <b>{u['wallet']['plan']}</b>
-Credits: {u['wallet']['credits']}
-Joined: {u['profile']['joined'][:10]}
-"""
-    await update.message.reply_text(txt, parse_mode=ParseMode.HTML)
-
-async def sysinfo_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    info = SysMon.get_stats()
-    await update.message.reply_text(f"🖥️ <b>SERVER STATUS</b>\n\n{info}\nUptime: 99.9%", parse_mode=ParseMode.HTML)
-
-async def premium_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# --- Menu Handlers ---
+async def premium_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     txt = """
 💎 <b>PREMIUM PLANS</b>
 
@@ -801,14 +804,32 @@ async def premium_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 """
     kb = [
         [InlineKeyboardButton("📅 Weekly", callback_data="buy_week"), InlineKeyboardButton("🗓️ Monthly", callback_data="buy_month")],
-        [InlineKeyboardButton("♾️ Lifetime", callback_data="buy_life")]
+        [InlineKeyboardButton("♾️ Lifetime", callback_data="buy_life")],
+        [InlineKeyboardButton("🔙 Back", callback_data="home")]
     ]
-    await update.message.reply_text(txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
+    if update.callback_query:
+        await update.callback_query.edit_message_text(txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
+    else:
+        await update.message.reply_text(txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
 
-# ==============================================================================
-#                           MODULE 11: ADMIN COMMANDS
-# ==============================================================================
+async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(TextAssets.HELP_MAIN.format(owner=SystemConfig.OWNER_USERNAME), parse_mode=ParseMode.HTML)
 
+async def new_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    db.wipe_history(update.effective_user.id)
+    await update.message.reply_text("🧹 <b>Context Wiped.</b>", parse_mode=ParseMode.HTML)
+
+async def me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    u = db.get_user(update.effective_user.id)
+    if not u: return
+    txt = f"👤 <b>PROFILE</b>\n\nID: <code>{update.effective_user.id}</code>\nPlan: {u['wallet']['plan']}\nCredits: {u['wallet']['credits']}"
+    await update.message.reply_text(txt, parse_mode=ParseMode.HTML)
+
+async def sysinfo_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    info = SysMon.get_stats()
+    await update.message.reply_text(f"🖥️ <b>SYSTEM STATUS</b>\n\n{info}\nUptime: 99.9%", parse_mode=ParseMode.HTML)
+
+# --- Admin Commands ---
 async def admin_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != SystemConfig.OWNER_ID: return
     if not context.args: return
@@ -833,13 +854,22 @@ async def admin_unban(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"✅ Unbanned {context.args[0]}")
     except: pass
 
-async def admin_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def admin_premium_add(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != SystemConfig.OWNER_ID: return
-    s = db.get_stats()
-    await update.message.reply_text(f"📊 <b>STATS</b>\nUsers: {s['users']}\nQueries: {s['queries']}\nBanned: {s['banned']}", parse_mode=ParseMode.HTML)
+    try:
+        db.set_premium(context.args[0], True)
+        await update.message.reply_text(f"✅ User {context.args[0]} set to Premium.")
+    except: pass
+
+async def admin_premium_remove(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != SystemConfig.OWNER_ID: return
+    try:
+        db.set_premium(context.args[0], False)
+        await update.message.reply_text(f"🚫 User {context.args[0]} set to Free.")
+    except: pass
 
 # ==============================================================================
-#                           MODULE 12: CALLBACKS & INIT
+#                           13. CALLBACKS & INIT
 # ==============================================================================
 
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -854,22 +884,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await start(update, context)
         else:
             await query.answer("❌ Not Joined Yet!", show_alert=True)
-            
-    elif data == "help_main":
-        await query.edit_message_text(TextAssets.HELP_MAIN.format(owner=SystemConfig.OWNER_USERNAME), parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("Coding", callback_data="help_code"), InlineKeyboardButton("Account", callback_data="help_acc")],
-            [InlineKeyboardButton("Back", callback_data="home")]
-        ]))
-        
-    elif data == "help_code":
-        await query.edit_message_text(TextAssets.HELP_CODING, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Back", callback_data="help_main")]]))
-        
-    elif data == "help_acc":
-        await query.edit_message_text(TextAssets.HELP_ACCOUNT, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Back", callback_data="help_main")]]))
-        
+    elif data == "help_main": await help_cmd(update, context)
     elif data == "me": await me_cmd(update, context)
     elif data == "home": await start(update, context)
-    
+    elif data == "premium": await premium_menu(update, context)
     elif data.startswith("buy_"):
         plan_map = {"buy_week": ("Weekly", 50), "buy_month": ("Monthly", 150), "buy_life": ("Lifetime", 500)}
         plan_name, amount = plan_map.get(data, ("Unknown", 0))
@@ -883,14 +901,14 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def post_init(app: Application):
     await app.bot.set_my_commands([
         BotCommand("start", "Home"),
-        BotCommand("rai", "Ask AI"),
-        BotCommand("new", "Reset"),
-        BotCommand("me", "Profile"),
+        BotCommand("rai", "Generate Code"),
+        BotCommand("new", "Reset Memory"),
+        BotCommand("premium", "Buy Pro"),
         BotCommand("help", "Support")
     ])
 
 def main():
-    print("🚀 INITIALIZING RAI GPT GOD MODE...")
+    print("🚀 INITIALIZING RAI GPT TITAN KERNEL...")
     
     # Start Flask Server
     threading.Thread(target=run_server, daemon=True).start()
@@ -903,18 +921,18 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("rai", rai_cmd))
     app.add_handler(CommandHandler("new", new_chat))
-    app.add_handler(CommandHandler("help", help_router))
+    app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CommandHandler("me", me_cmd))
     app.add_handler(CommandHandler("sysinfo", sysinfo_cmd))
     app.add_handler(CommandHandler("premium", premium_handler))
     
-    # Admin
+    # Admin Handlers
     app.add_handler(CommandHandler("broadcast", admin_broadcast))
     app.add_handler(CommandHandler("ban", admin_ban))
     app.add_handler(CommandHandler("unban", admin_unban))
-    app.add_handler(CommandHandler("stats", admin_stats))
+    app.add_handler(CommandHandler("addpremium", admin_premium_add))
+    app.add_handler(CommandHandler("removepremium", admin_premium_remove))
     
-    # Callback
     app.add_handler(CallbackQueryHandler(callback_handler))
     
     print("✅ Bot Polling: STARTED")
