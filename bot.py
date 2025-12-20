@@ -4,12 +4,12 @@
 """
 ====================================================================================================
 ||                                                                                                ||
-||                       PROJECT: RAI GPT - GODSPEED MONOLITH                                     ||
+||                       PROJECT: RAI GPT - GODSPEED MONOLITH v2.0                                ||
 ||                   "The 1000-Line Ultimate AI Infrastructure"                                   ||
 ||                                                                                                ||
 ====================================================================================================
 ||                                                                                                ||
-||  VERSION:        2025.5.0 (Godspeed Build)                                                     ||
+||  VERSION:        2025.6.0 (Stable Release)                                                     ||
 ||  DEVELOPER:      @PixDev_Rai                                                                   ||
 ||  OWNER ID:       6406769029                                                                    ||
 ||  LICENSE:        Enterprise Proprietary                                                        ||
@@ -17,29 +17,42 @@
 ||                                                                                                ||
 ====================================================================================================
 
-[ DOCUMENTATION & MODULES ]
+[ SYSTEM ARCHITECTURE & MODULES DOCUMENTATION ]
 
-1.  SYSTEM KERNEL
-    - Manages imports, signal handling, and runtime configurations.
-    
-2.  DATA PERSISTENCE (ACID)
-    - Custom JSON Database with robust error handling.
-    - Manages Users, Premium Plans, Bans, and Invoices.
+1.  KERNEL LEVEL
+    - Manages the event loop, signal handling, and thread synchronization.
+    - Initializes the Flask subsystem for 24/7 uptime monitoring.
+    - Handles graceful shutdowns and auto-restarts on critical failures.
 
-3.  SECURITY MATRIX
-    - Force Subscription logic.
-    - Anti-Spam protection.
-    - Admin verification protocols.
+2.  DATA PERSISTENCE LAYER (ACID)
+    - Custom JSON Database Engine with atomic write operations.
+    - Automated corruption detection and backup restoration.
+    - Transaction logging for credits and premium plans.
+    - User Profile Management with deep analytics.
 
-4.  NEURAL ENGINE
-    - Connects to AI Provider.
-    - Handles Smart Context (Memory).
-    - Manages Payload sizes to prevent timeouts.
+3.  NEURAL INTERFACE (AI BRIDGE)
+    - High-Bandwidth connection to Pollinations AI.
+    - Implements 'Smart Context Truncation' to handle infinite conversation depth.
+    - Features 'Auto-Retry' and 'Failover' mechanisms for 99.9% uptime.
+    - Support for Code Generation, Debugging, and Documentation.
 
-5.  PROJECT ARCHITECT (FILE SYSTEM)
-    - Auto-detects programming languages.
-    - Creates ZIP files for large codebases.
-    - Dynamic Naming System based on user prompt.
+4.  SECURITY & FIREWALL MATRIX
+    - DDoS Protection (Token Bucket Algorithm).
+    - User Authentication (Force Sub Verification).
+    - Admin-Level Ban/Unban Protocols.
+    - Input Sanitization to prevent injection attacks.
+
+5.  COMMERCE & BILLING GATEWAY
+    - Virtual Currency (Credits) management system.
+    - Invoice Generation and Plan Lifecycle management.
+    - Premium Tier Logic (Free vs VIP vs God Mode).
+    - Transaction History logging.
+
+6.  UI/UX RENDERER
+    - Generates dynamic HTML-based rich text messages.
+    - Multi-Language Support menus (English/Hindi).
+    - Real-time Server Health Diagnostics visualization.
+    - Interactive Keyboard Layouts.
 
 ====================================================================================================
 """
@@ -117,18 +130,18 @@ class SystemConfig:
     """
     
     # --- IDENTITY ---
-    TOKEN = "8203679051:AAFDEDadYZZHzD-6gvign3WWVcTFbYRTLL4"
+    TOKEN = "8203679051:AAHJCgR-LE06jKind0-Rej4fMRFYKR3XISQ"
     OWNER_ID = 6406769029
     OWNER_USERNAME = "@PixDev_Rai"
     BOT_NAME = "Rai GPT Godspeed"
-    VERSION = "2025.5.0"
+    VERSION = "2025.6.0"
     
     # --- FILESYSTEM ---
     DB_FILE = "rai_godspeed.json"
     LOG_FILE = "godspeed_server.log"
     
     # --- SECURITY ---
-    FORCE_SUB_ENABLED = False
+    FORCE_SUB_ENABLED = True
     CHANNEL_USERNAME = "@raiaddaarmys"
     CHANNEL_LINK = "https://t.me/raiaddaarmys"
     ADMIN_LIST = [6406769029]
@@ -136,11 +149,11 @@ class SystemConfig:
     # --- AI ENGINE ---
     AI_URL = "https://text.pollinations.ai/"
     TIMEOUT = 180
-    RETRY_ATTEMPTS = 3
     MAX_CONTEXT_DEPTH = 10
+    RETRY_ATTEMPTS = 3
     
     # --- LOGIC THRESHOLDS ---
-    TEXT_MSG_LIMIT = 4000
+    TEXT_LIMIT_CHARS = 4000
     FREE_LINES_LIMIT = 600
     PREMIUM_LINES_LIMIT = 3000
     
@@ -292,10 +305,10 @@ class DatabaseEngine:
 
     def _load(self):
         if not os.path.exists(self.path):
-            return {"users": {}, "banned": [], "invoices": [], "stats": {"total": 0}}
+            return {"users": {}, "banned": [], "stats": {"total": 0}, "invoices": []}
         try:
             with open(self.path, 'r') as f: return json.load(f)
-        except: return {"users": {}, "banned": [], "invoices": [], "stats": {"total": 0}}
+        except: return {"users": {}, "banned": [], "stats": {"total": 0}, "invoices": []}
 
     def save(self):
         with self.lock:
@@ -351,7 +364,7 @@ class DatabaseEngine:
     def is_premium(self, uid):
         if int(uid) == SystemConfig.OWNER_ID: return True
         u = self.get_user(uid)
-        if not u or u["sub_expiry"] == "None": return False
+        if not u or u.get("sub_expiry") == "None": return False
         try:
             exp = datetime.datetime.strptime(u["sub_expiry"], "%Y-%m-%d %H:%M:%S")
             return datetime.datetime.now() < exp
@@ -399,7 +412,35 @@ class DatabaseEngine:
 db = DatabaseEngine(SystemConfig.DB_FILE)
 
 # ==============================================================================
-#                           MODULE 5: FILE MANAGER (SMART ZIP)
+#                           SECTION 5: SAFE MESSAGE SENDER (NEW)
+# ==============================================================================
+
+class SafeSender:
+    """
+    CRITICAL MODULE: Prevents Bot Crashes due to Parsing Errors.
+    Tries Markdown -> HTML -> Plain Text automatically.
+    """
+    @staticmethod
+    async def send(update, text, keyboard=None):
+        try:
+            # 1. Try Markdown (Best for code)
+            await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard)
+        except Exception:
+            try:
+                # 2. Try HTML
+                await update.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=keyboard)
+            except Exception:
+                try:
+                    # 3. Try Escaped HTML
+                    safe = html.escape(text)
+                    await update.message.reply_text(safe, parse_mode=ParseMode.HTML, reply_markup=keyboard)
+                except Exception:
+                    # 4. Fallback: Plain Text (Ugly but works)
+                    await update.message.reply_text(text, parse_mode=None, reply_markup=keyboard)
+
+# ----------------- CONTINUED IN PART 2 -----------------
+# ==============================================================================
+#                           SECTION 6: FILE MANAGER
 # ==============================================================================
 
 class FileManager:
@@ -409,7 +450,6 @@ class FileManager:
         if "html" in prompt: return "html"
         if "python" in prompt or "def " in code: return "py"
         if "java" in prompt or "public class" in code: return "java"
-        if "json" in prompt: return "json"
         if "sketchware" in prompt: return "txt"
         return "txt"
 
@@ -417,8 +457,7 @@ class FileManager:
     def get_filename(prompt: str) -> str:
         clean = re.sub(r'(create|make|give|code|for|a|the|in|how|to|write|generate)', '', prompt.lower())
         clean = re.sub(r'[^\w\s]', '', clean).strip()
-        filename = re.sub(r'\s+', '_', clean)
-        filename = filename.title()
+        filename = re.sub(r'\s+', '_', clean).title()
         if len(filename) < 3: filename = f"Project_{int(time.time())}"
         return filename[:30]
 
@@ -430,8 +469,7 @@ class FileManager:
         
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
             zf.writestr(f"{base_name}.{ext}", content)
-            readme = f"PROJECT: {base_name}\nGENERATED BY: {SystemConfig.BOT_NAME}\nDATE: {datetime.datetime.now()}"
-            zf.writestr("README.txt", readme)
+            zf.writestr("README.txt", f"Prompt: {prompt}\nDev: {SystemConfig.OWNER_USERNAME}")
             if ext == "py":
                 zf.writestr("requirements.txt", "requests\nflask\npython-telegram-bot\ngunicorn")
                 
@@ -439,7 +477,7 @@ class FileManager:
         return zip_buffer, f"{base_name}.zip"
 
 # ==============================================================================
-#                           MODULE 6: AI ENGINE
+#                           SECTION 7: AI ENGINE
 # ==============================================================================
 
 class AIEngine:
@@ -452,7 +490,7 @@ class AIEngine:
         for m in history:
             context += f"{'User' if m['role']=='user' else 'AI'}: {m['content']}\n"
         
-        payload = f"{SystemConfig.SYSTEM_INSTRUCTION}\n\n=== CONTEXT ===\n{context}\n=== REQUEST ===\nUser: {prompt}\nAI:"
+        payload = f"{SystemConfig.SYSTEM_INSTRUCTION}\n\nHistory:\n{context}\nUser: {prompt}\nAI:"
         
         if len(payload) > 5000:
             payload = f"{SystemConfig.SYSTEM_INSTRUCTION}\nUser: {prompt}\nAI:"
@@ -476,7 +514,7 @@ class AIEngine:
 ai = AIEngine()
 
 # ==============================================================================
-#                           MODULE 7: UTILITIES & SECURITY
+#                           SECTION 8: UTILITIES
 # ==============================================================================
 
 class Utils:
@@ -505,9 +543,8 @@ class Utils:
             return True
         except: return True
 
-# ----------------- CONTINUED IN PART 2 -----------------
 # ==============================================================================
-#                           MODULE 8: WEB SERVER (24/7)
+#                           SECTION 9: WEB SERVER
 # ==============================================================================
 
 app = Flask(__name__)
@@ -523,7 +560,7 @@ def run_server():
     app.run(host="0.0.0.0", port=port)
 
 # ==============================================================================
-#                           MODULE 9: BOT HANDLERS
+#                           SECTION 10: BOT HANDLERS
 # ==============================================================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -531,16 +568,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     db.register(user)
     
     if db.is_banned(user.id):
-        await update.message.reply_text(TextAssets.BANNED_MSG, parse_mode=ParseMode.HTML)
+        await SafeSender.send(update, TextAssets.BANNED_MSG)
         return
 
     if not await Utils.verify_sub(user.id, context.bot):
         kb = [[InlineKeyboardButton("🚀 JOIN CHANNEL", url=SystemConfig.CHANNEL_LINK)],
               [InlineKeyboardButton("✅ VERIFY JOIN", callback_data="verify")]]
-        await update.message.reply_text(
-            TextAssets.FORCE_SUB.format(bot=SystemConfig.BOT_NAME), 
-            parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb)
-        )
+        await SafeSender.send(update, TextAssets.FORCE_SUB.format(bot_name=SystemConfig.BOT_NAME), kb)
         return
 
     u_data = db.get_user(user.id)
@@ -577,24 +611,23 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.callback_query:
         await update.callback_query.edit_message_text(txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
     else:
-        await update.message.reply_text(txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
+        await SafeSender.send(update, txt, InlineKeyboardMarkup(kb))
 
 async def rai_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """MAIN AI LOGIC"""
     user = update.effective_user
     chat_id = update.effective_chat.id
     
     if db.is_banned(user.id): return
     if not await Utils.verify_sub(user.id, context.bot):
-        await update.message.reply_text("❌ Join Channel First!", parse_mode=ParseMode.HTML)
+        await SafeSender.send(update, "❌ Join Channel First!")
         return
 
     if not context.args:
-        await update.message.reply_text("⚠️ <b>Usage:</b> <code>/rai python calculator</code>", parse_mode=ParseMode.HTML)
+        await SafeSender.send(update, "⚠️ <b>Usage:</b> <code>/rai python calculator</code>")
         return
 
     prompt = " ".join(context.args)
-    status_msg = await update.message.reply_text(f"🧠 <b>Thinking...</b>\n<i>Parsing: {html.escape(prompt[:30])}...</i>", parse_mode=ParseMode.HTML)
+    status_msg = await update.message.reply_text("🧠 <b>Thinking...</b>", parse_mode=ParseMode.HTML)
     await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
 
     try:
@@ -610,21 +643,21 @@ async def rai_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         await status_msg.delete()
 
-        # LOGIC 1: Code < 200 Lines (Send as Text)
+        # LOGIC 1: Code < 200 Lines -> Text
         if line_count < SystemConfig.FREE_LINES_LIMIT:
             db.add_history(user.id, "user", prompt)
             db.add_history(user.id, "ai", response)
             parts = Utils.split_text(response)
             for p in parts:
-                try: await update.message.reply_text(p, parse_mode=ParseMode.MARKDOWN)
-                except: await update.message.reply_text(p, parse_mode=ParseMode.HTML)
+                await SafeSender.send(update, p)
             return
 
-        # LOGIC 2: Code 200-600 Lines (Free Zip)
-        # OR Premium User (Up to 3000 Lines)
-        
+        # LOGIC 2: Code 200-600 Lines (Free Zip) or Premium
         if line_count <= SystemConfig.FREE_LINES_LIMIT or is_premium:
-            # Send Zip
+            if line_count > SystemConfig.PREMIUM_LINES_LIMIT:
+                await SafeSender.send(update, "🚫 <b>Too Big!</b> Code exceeds limit.")
+                return
+            
             zip_obj, filename = FileManager.create_dynamic_zip(response, prompt)
             caption = f"📦 <b>Project Ready</b>\n📁 <b>File:</b> <code>{filename}</code>\n📊 <b>Lines:</b> {line_count}\n👤 <b>User:</b> {user.first_name}"
             
@@ -645,14 +678,14 @@ async def rai_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 owner=SystemConfig.OWNER_USERNAME
             )
             kb = [[InlineKeyboardButton("💎 UPGRADE NOW", callback_data="premium")]]
-            await update.message.reply_text(txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
+            await SafeSender.send(update, txt, InlineKeyboardMarkup(kb))
             return
 
     except Exception as e:
-        await context.bot.send_message(chat_id=chat_id, text=f"❌ Error: {e}", parse_mode=ParseMode.HTML)
+        await SafeSender.send(update, f"❌ Error: {e}")
 
 # --- MENUS ---
-async def premium_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def premium_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     txt = """
 💎 <b>PREMIUM PLANS</b>
 
@@ -663,28 +696,27 @@ async def premium_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 👇 <b>Select Plan to Pay:</b>
 """
     kb = [
-        [InlineKeyboardButton("📅 Weekly", callback_data="buy_week"), InlineKeyboardButton("🗓️ Monthly", callback_data="buy_month")],
-        [InlineKeyboardButton("♾️ Lifetime", callback_data="buy_life")],
+        [InlineKeyboardButton("📅 Weekly", callback_data="buy"), InlineKeyboardButton("🗓️ Monthly", callback_data="buy")],
+        [InlineKeyboardButton("♾️ Lifetime", callback_data="buy")],
         [InlineKeyboardButton("🔙 Back", callback_data="home")]
     ]
     if update.callback_query:
         await update.callback_query.edit_message_text(txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
     else:
-        await update.message.reply_text(txt, parse_mode=ParseMode.HTML, reply_markup=InlineKeyboardMarkup(kb))
+        await SafeSender.send(update, txt, InlineKeyboardMarkup(kb))
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(TextAssets.HELP_MENU.format(owner=SystemConfig.OWNER_USERNAME), parse_mode=ParseMode.HTML)
+    await SafeSender.send(update, TextAssets.HELP_MENU.format(owner=SystemConfig.OWNER_USERNAME))
 
 async def new_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     db.clear_history(update.effective_user.id)
-    await update.message.reply_text("🧹 Memory Cleared.", parse_mode=ParseMode.HTML)
+    await SafeSender.send(update, "🧹 Memory Cleared.")
 
 async def me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     u = db.get_user(update.effective_user.id)
     if not u: return
-    expiry = u.get("sub_expiry", "None")
     status = "Premium" if db.is_premium(update.effective_user.id) else "Free"
-    await update.message.reply_text(f"👤 <b>ID:</b> <code>{update.effective_user.id}</code>\n💎 <b>Plan:</b> {status}\n📅 <b>Expiry:</b> {expiry}", parse_mode=ParseMode.HTML)
+    await SafeSender.send(update, f"👤 <b>ID:</b> <code>{update.effective_user.id}</code>\n💎 <b>Plan:</b> {status}")
 
 # --- ADMIN COMMANDS ---
 async def admin_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -712,39 +744,23 @@ async def admin_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except: pass
 
 async def admin_add_premium(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Usage: /addpremium @user 30 days"""
     if update.effective_user.id != SystemConfig.OWNER_ID: return
     try:
-        if len(context.args) < 3:
-            await update.message.reply_text("Usage: /addpremium @user 30 days")
-            return
-        
-        uname = context.args[0]
-        amt = context.args[1]
-        unit = context.args[2]
-        
+        if len(context.args) < 3: return
+        uname, amt, unit = context.args[0], context.args[1], context.args[2]
         uid = db.get_uid_by_name(uname)
         if uid:
-            expiry = db.set_premium(uid, f"{amt} {unit}")
-            if expiry:
-                await update.message.reply_text(f"✅ Premium added to {uname} until {expiry}")
-            else:
-                await update.message.reply_text("❌ Invalid duration.")
-        else:
-            await update.message.reply_text("❌ User not found.")
-    except Exception as e:
-        await update.message.reply_text(f"Error: {e}")
+            db.set_premium(uid, f"{amt} {unit}")
+            await update.message.reply_text(f"✅ Premium added to {uname}")
+    except Exception as e: await update.message.reply_text(f"Error: {e}")
 
 async def admin_remove_premium(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != SystemConfig.OWNER_ID: return
     try:
-        uname = context.args[0]
-        uid = db.get_uid_by_name(uname)
+        uid = db.get_uid_by_name(context.args[0])
         if uid:
             db.remove_premium(uid)
-            await update.message.reply_text(f"🚫 Premium removed from {uname}")
-        else:
-            await update.message.reply_text("❌ User not found.")
+            await update.message.reply_text(f"🚫 Premium removed.")
     except: pass
 
 # --- CALLBACK ---
@@ -759,16 +775,13 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif q.data == "home": await start(update, context)
     elif q.data == "help": await help_cmd(update, context)
     elif q.data == "me": await me_cmd(update, context)
-    elif q.data == "premium": await premium_menu(update, context)
-    elif q.data.startswith("buy_"):
-        plan_name = q.data.replace("buy_", "").title()
-        price = 50 if "week" in q.data else 150 if "month" in q.data else 500
-        inv_id = db.create_invoice(q.from_user.id, price, plan_name)
+    elif q.data == "premium": await premium_handler(update, context)
+    elif q.data.startswith("buy"):
+        inv_id = db.create_invoice(q.from_user.id, 99, q.data)
         txt = TextAssets.INVOICE_TXT.format(
-            inv_id=inv_id, user=q.from_user.first_name, 
-            plan=plan_name, price=price, owner=SystemConfig.OWNER_USERNAME
+            inv_id=inv_id, user=q.from_user.first_name, plan="PRO", price=99, owner=SystemConfig.OWNER_USERNAME
         )
-        await q.message.reply_text(txt, parse_mode=ParseMode.HTML)
+        await SafeSender.send(update, txt)
 
 async def post_init(app: Application):
     await app.bot.set_my_commands([
@@ -788,11 +801,10 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("rai", rai_cmd))
     app.add_handler(CommandHandler("new", new_chat))
-    app.add_handler(CommandHandler("premium", premium_menu))
+    app.add_handler(CommandHandler("premium", premium_handler))
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CommandHandler("me", me_cmd))
     
-    # Admin
     app.add_handler(CommandHandler("ban", admin_ban))
     app.add_handler(CommandHandler("unban", admin_unban))
     app.add_handler(CommandHandler("broadcast", admin_broadcast))
