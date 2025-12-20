@@ -792,7 +792,7 @@ async def rai_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=chat_id, text="❌ <b>Critical Error.</b>", parse_mode=ParseMode.HTML)
 
 # --- Menu Handlers ---
-async def premium_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def premium_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     txt = """
 💎 <b>PREMIUM PLANS</b>
 
