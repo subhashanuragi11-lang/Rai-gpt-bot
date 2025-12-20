@@ -128,7 +128,7 @@ class SystemConfig:
     LOG_FILE = "godspeed_server.log"
     
     # --- SECURITY ---
-    FORCE_SUB_ENABLED = True
+    FORCE_SUB_ENABLED = False
     CHANNEL_USERNAME = "@raiaddaarmys"
     CHANNEL_LINK = "https://t.me/raiaddaarmys"
     ADMIN_LIST = [6406769029]
