@@ -136,6 +136,7 @@ class SystemConfig:
     # --- AI ENGINE ---
     AI_URL = "https://text.pollinations.ai/"
     TIMEOUT = 180
+    RETRY_ATTEMPTS = 3
     MAX_CONTEXT_DEPTH = 10
     
     # --- LOGIC THRESHOLDS ---
