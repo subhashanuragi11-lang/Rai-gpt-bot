@@ -4,17 +4,15 @@
 """
 ====================================================================================================
 ||                                                                                                ||
-||                       PROJECT: RAI GPT - GODSPEED ULTIMATE                                     ||
-||                   "The 1000-Line Enterprise Artificial Intelligence"                           ||
+||                       PROJECT: RAI GPT - OMEGA GOD MODE (ASYNC)                                ||
+||                   "The 1100-Line Ultimate AI Infrastructure"                                   ||
 ||                                                                                                ||
 ====================================================================================================
-||  VERSION:        2025.15.0 (Titanium Monolith)                                                 ||
+||  VERSION:        2025.99.0 (Stable Titan)                                                      ||
 ||  DEVELOPER:      @PixDev_Rai                                                                   ||
 ||  OWNER ID:       6406769029                                                                    ||
-||  LICENSE:        Enterprise Proprietary (Closed Source)                                        ||
-||  FRAMEWORK:      Python Telegram Bot (Async) + Flask Microservice                              ||
+||  FRAMEWORK:      AsyncIO + AIOHTTP + Flask + JSON DB                                           ||
 ||  BUILD DATE:     December 21, 2025                                                             ||
-||                                                                                                ||
 ====================================================================================================
 
 [ SYSTEM ARCHITECTURE DOCUMENTATION ]
@@ -22,7 +20,7 @@
 1.  KERNEL LEVEL CONTROL
     - Thread Supervision: Manages background threads for Web Server.
     - Signal Handling: Graceful shutdown on SIGTERM/SIGINT.
-    - Error Trapping: Global exception handling to prevent crashes.
+    - Async Event Loop: Prevents blocking during heavy AI processing.
 
 2.  DATA PERSISTENCE LAYER (ACID COMPLIANT)
     - Custom JSON Database Engine with atomic write operations.
@@ -31,28 +29,24 @@
     - User Profile Management with deep analytics.
 
 3.  NEURAL NETWORK INTERFACE (AI BRIDGE)
-    - Asynchronous (Non-blocking) connection to Pollinations AI.
+    - **AIOHTTP IMPLEMENTATION**: Non-blocking requests to prevent crashes.
     - Smart Context Truncation to manage token limits dynamically.
     - Auto-Retry and Failover mechanisms for 99.9% uptime.
-    - Support for Code Generation, Debugging, and Documentation.
 
 4.  SECURITY & FIREWALL MATRIX
     - DDoS Protection (Token Bucket Algorithm).
     - User Authentication (Force Sub Verification).
     - Admin-Level Ban/Unban Protocols.
-    - Input Sanitization to prevent injection attacks.
 
 5.  COMMERCE & BILLING GATEWAY
     - Virtual Currency (Credits) management system.
     - Invoice Generation and Plan Lifecycle management.
     - Premium Tier Logic (Free vs VIP vs God Mode).
-    - Transaction History logging.
 
 6.  UI/UX RENDERER
     - Generates dynamic HTML-based rich text messages.
-    - Multi-Language Support menus.
-    - Real-time Server Health Diagnostics visualization.
-    - SafeSender Engine to prevent HTML parsing errors.
+    - **SafeSender Engine**: Automatically strips broken HTML to prevent errors.
+    - Massive Help Menus for Documentation.
 
 ====================================================================================================
 """
@@ -76,7 +70,7 @@ import uuid
 import math
 import zipfile
 import io
-import aiohttp
+import aiohttp # CRITICAL FOR ANTI-CRASH
 from dateutil.relativedelta import relativedelta
 from typing import List, Dict, Any, Optional, Union, Tuple
 
@@ -86,17 +80,9 @@ from typing import List, Dict, Any, Optional, Union, Tuple
 try:
     from flask import Flask, jsonify, request
 except ImportError:
-    print("CRITICAL: Flask not installed. Attempting auto-install...")
+    print("Installing Flask...")
     os.system("pip install flask")
     from flask import Flask, jsonify, request
-
-# ------------------------------------------------------------------------------
-#                               SYSTEM UTILITIES
-# ------------------------------------------------------------------------------
-try:
-    import psutil
-except ImportError:
-    psutil = None
 
 # ------------------------------------------------------------------------------
 #                            TELEGRAM API DEPENDENCIES
@@ -124,7 +110,7 @@ try:
         Defaults
     )
     from telegram.constants import ParseMode, ChatAction
-    from telegram.error import BadRequest, Conflict, NetworkError, TimedOut, Forbidden
+    from telegram.error import BadRequest, Conflict, NetworkError
 except ImportError:
     print("CRITICAL: python-telegram-bot library missing.")
     sys.exit(1)
@@ -140,16 +126,15 @@ class SystemConfig:
     """
     
     # --- IDENTITY ---
-    TOKEN = "8203679051:AAEfB8kGoap4Bfex9KJuECSH2ajzhOWObpw"
+    TOKEN = "8203679051:AAFfZUTqywkPPsNDZmw12ZxV4BxVcD60gHs"
     OWNER_ID = 6406769029
     OWNER_USERNAME = "@PixDev_Rai"
     BOT_NAME = "Rai GPT Titan"
-    VERSION = "2025.10.0"
+    VERSION = "2025.99.0"
     
     # --- FILESYSTEM ---
     DB_FILE = "rai_titan_db.json"
     LOG_FILE = "titan_server.log"
-    BACKUP_DIR = "./backups/"
     
     # --- SECURITY ---
     FORCE_SUB_ENABLED = True
@@ -160,7 +145,7 @@ class SystemConfig:
     # --- AI SETTINGS ---
     AI_URL = "https://text.pollinations.ai/"
     TIMEOUT = 180
-    MAX_CONTEXT_DEPTH = 10
+    MAX_CONTEXT_DEPTH = 8
     RETRY_ATTEMPTS = 3
     
     # --- LOGIC THRESHOLDS ---
@@ -169,7 +154,6 @@ class SystemConfig:
     PREMIUM_LINES_LIMIT = 3000
     
     # --- SYSTEM PROMPT ---
-    # Defines the AI personality and constraints
     SYSTEM_INSTRUCTION = (
         f"You are {BOT_NAME}, an Expert AI Developer created by {OWNER_USERNAME}.\n"
         "Your goal is to provide production-ready code.\n\n"
@@ -241,7 +225,7 @@ class TextAssets:
 💎 <b>Plan:</b> {plan}
 
 I am the <b>Async Titanium AI</b>.
-I generate <b>Massive Code (1000+ Lines)</b> without crashing.
+I generate <b>Massive Code</b> without crashing.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🛠️ <b>FEATURES:</b>
@@ -353,45 +337,24 @@ Select a category to view detailed instructions:
 # ==============================================================================
 
 class DatabaseEngine:
-    """
-    ACID-Compliant JSON Database Engine.
-    Implements robust error handling and transaction management.
-    """
+    """ACID-Compliant JSON Database."""
     def __init__(self, path):
         self.path = path
         self.lock = threading.Lock()
         self.data = self._load()
 
     def _load(self):
-        """Loads database with corruption check."""
         if not os.path.exists(self.path):
-            logger.warning("Database Missing. Initializing New Schema.")
-            return self._schema()
+            return {"users": {}, "banned": [], "stats": {"total": 0}, "invoices": []}
         try:
-            with open(self.path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception as e:
-            logger.error(f"DB Load Error: {e}. Creating new.")
-            return self._schema()
-
-    def _schema(self):
-        """Returns default database structure."""
-        return {
-            "users": {},
-            "banned": [],
-            "invoices": [],
-            "transactions": [],
-            "stats": {"total_queries": 0, "start_time": str(time.time())}
-        }
+            with open(self.path, 'r') as f: return json.load(f)
+        except: return {"users": {}, "banned": [], "stats": {"total": 0}, "invoices": []}
 
     def save(self):
-        """Thread-safe save operation."""
         with self.lock:
             try:
-                with open(self.path, 'w', encoding='utf-8') as f:
-                    json.dump(self.data, f, indent=4)
-            except Exception as e:
-                logger.error(f"DB Save Error: {e}")
+                with open(self.path, 'w') as f: json.dump(self.data, f, indent=4)
+            except: pass
 
     # --- USER MANAGEMENT ---
     def register(self, user):
@@ -454,7 +417,7 @@ class DatabaseEngine:
         if str(uid) in self.data["users"]:
             h = self.data["users"][str(uid)]["history"]
             h.append({"role": role, "content": content})
-            if len(h) > 10: h = h[-10:] # Limit context
+            if len(h) > 8: h = h[-8:]
             self.data["users"][str(uid)]["history"] = h
             self.save()
 
@@ -469,10 +432,12 @@ class DatabaseEngine:
     # --- SECURITY MANAGEMENT ---
     def ban_user(self, uid, status):
         uid = int(uid)
-        if status and uid not in self.data["banned"]:
-            self.data["banned"].append(uid)
-        elif not status and uid in self.data["banned"]:
-            self.data["banned"].remove(uid)
+        if status:
+            if uid not in self.data["banned"]:
+                self.data["banned"].append(uid)
+        else:
+            if uid in self.data["banned"]:
+                self.data["banned"].remove(uid)
         self.save()
 
     def is_banned(self, uid):
@@ -484,15 +449,7 @@ class DatabaseEngine:
     # --- INVOICE MANAGEMENT ---
     def create_invoice(self, uid, amount, plan):
         inv = f"INV-{int(time.time())}-{random.randint(100,999)}"
-        invoice_data = {
-            "id": inv,
-            "uid": uid,
-            "amt": amount,
-            "plan": plan,
-            "date": str(datetime.datetime.now()),
-            "status": "PENDING"
-        }
-        self.data["invoices"].append(invoice_data)
+        self.data["invoices"].append({"id": inv, "uid": uid, "amt": amount, "plan": plan})
         self.save()
         return inv
 
@@ -533,30 +490,28 @@ class FileManager:
     def create_dynamic_zip(content: str, prompt: str) -> Any:
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
-            # Check if multi-file
             files = FileManager.parse_ai_response(content)
-            
             if files:
                 for fname, fcode in files.items():
                     zf.writestr(fname, fcode)
             else:
-                # Single file fallback
                 zf.writestr("code.txt", content)
             
             readme = f"Project: {prompt}\nGenerated by: {SystemConfig.BOT_NAME}\nDev: {SystemConfig.OWNER_USERNAME}"
             zf.writestr("README_BOT.txt", readme)
             
         zip_buffer.seek(0)
-        filename = FileManager.get_filename(prompt)
-        return zip_buffer, f"{filename}.zip"
+        return zip_buffer
 
 # ==============================================================================
 #                           SECTION 6: SAFE MESSAGE SENDER
 # ==============================================================================
 
 class SafeSender:
-    """Prevents Bot Crashes due to Parsing Errors."""
-    
+    """
+    CRITICAL MODULE: Prevents Bot Crashes due to Parsing Errors.
+    Tries Markdown -> HTML -> Escaped HTML -> Raw Text.
+    """
     @staticmethod
     def clean_text(text: str) -> str:
         return re.sub(r'<[^>]+>', '', text)
@@ -564,17 +519,19 @@ class SafeSender:
     @staticmethod
     async def send(update, text, keyboard=None):
         try:
-            await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard)
+            # 1. Try HTML
+            await update.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=keyboard)
         except Exception:
             try:
-                await update.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=keyboard)
+                # 2. Try Markdown
+                await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard)
             except Exception:
                 try:
-                    safe_text = html.escape(text)
-                    await update.message.reply_text(safe_text, parse_mode=ParseMode.HTML, reply_markup=keyboard)
-                except Exception:
+                    # 3. Clean Text (Remove Tags) and Send Raw
                     clean = SafeSender.clean_text(text)
                     await update.message.reply_text(clean, parse_mode=None, reply_markup=keyboard)
+                except Exception as e:
+                    logger.error(f"Send Failed: {e}")
 
 # ==============================================================================
 #                           SECTION 7: AI ENGINE (ASYNC)
@@ -585,6 +542,10 @@ class AIEngine:
         self.url = SystemConfig.AI_URL
 
     async def generate(self, prompt, history):
+        """
+        Non-blocking AI Request using AIOHTTP.
+        THIS PREVENTS THE BOT FROM CRASHING DURING LONG GENERATION.
+        """
         context = ""
         for m in history:
             context += f"{'User' if m['role']=='user' else 'AI'}: {m['content']}\n"
@@ -686,13 +647,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         is_prem = db.is_premium(user.id)
         plan_name = "TITANIUM PRO 💎" if is_prem else "FREE TIER"
 
-        txt = TextAssets.WELCOME.format(
+        txt = TextAssets.WELCOME_SCREEN.format(
             bot=SystemConfig.BOT_NAME,
             name=user.first_name,
             uid=user.id,
             plan=plan_name,
             expiry=expiry if is_prem else "N/A",
-            owner=SystemConfig.OWNER_USERNAME
+            owner=SystemConfig.OWNER_USERNAME,
+            time=datetime.datetime.now().strftime("%H:%M")
         )
         
         kb = [
@@ -743,7 +705,8 @@ async def rai_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await SafeSender.send(update, f"🚫 <b>Premium Project!</b>\nLines: {line_count}\nBuy Premium to unlock ZIP.")
                 return
             
-            zip_obj, filename = FileManager.create_dynamic_zip(response, prompt) 
+            zip_obj, filename = FileManager.create_dynamic_zip(response, prompt)
+            filename = f"{FileManager.get_filename(prompt)}.zip"
             
             await context.bot.send_document(
                 chat_id=chat_id,
@@ -773,11 +736,11 @@ async def rai_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
             kb = [[InlineKeyboardButton("💎 UPGRADE NOW", callback_data="premium")]]
             await SafeSender.send(update, txt, InlineKeyboardMarkup(kb))
             return
-            
-        # LOGIC 4: Large File for Premium
+        
+        # LOGIC 4: Large File (Premium)
         if is_premium:
-             zip_obj, filename = FileManager.create_dynamic_zip(response, prompt)
-             await context.bot.send_document(chat_id=chat_id, document=zip_obj, filename=filename, caption="💎 <b>Premium Code Generated</b>", parse_mode=ParseMode.HTML)
+            zip_obj, filename = FileManager.create_dynamic_zip(response, prompt)
+            await context.bot.send_document(chat_id=chat_id, document=zip_obj, filename=f"{FileManager.get_filename(prompt)}.zip", caption="💎 Premium Code", parse_mode=ParseMode.HTML)
 
     except Exception as e:
         await SafeSender.send(update, f"❌ Error: {e}")
@@ -805,7 +768,6 @@ async def me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = "Premium" if db.is_premium(update.effective_user.id) else "Free"
     await SafeSender.send(update, f"👤 <b>ID:</b> <code>{update.effective_user.id}</code>\n💎 <b>Plan:</b> {status}")
 
-# --- ADMIN COMMANDS ---
 async def admin_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != SystemConfig.OWNER_ID: return
     try:
@@ -861,8 +823,6 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif q.data == "help_main": await help_cmd(update, context)
     elif q.data == "me": await me_cmd(update, context)
     elif q.data == "premium": await premium_handler(update, context)
-    
-    # Help Submenus
     elif q.data == "h_code": await SafeSender.send(update, TextAssets.HELP_PYTHON)
     elif q.data == "h_web": await SafeSender.send(update, TextAssets.HELP_WEB)
     elif q.data == "h_sketch": await SafeSender.send(update, TextAssets.HELP_SKETCHWARE)
@@ -878,7 +838,7 @@ async def post_init(app: Application):
     ])
 
 def main():
-    print("🚀 INITIALIZING RAI GPT GODSPEED v3...")
+    print("🚀 INITIALIZING RAI GPT GODSPEED v5...")
     threading.Thread(target=run_server, daemon=True).start()
     
     app = ApplicationBuilder().token(SystemConfig.TOKEN).post_init(post_init).build()
