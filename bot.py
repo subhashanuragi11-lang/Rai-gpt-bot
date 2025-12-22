@@ -4,15 +4,17 @@
 """
 ====================================================================================================
 ||                                                                                                ||
-||                       PROJECT: RAI GPT - OMEGA GOD MODE (ASYNC)                                ||
-||                   "The 1100-Line Ultimate AI Infrastructure"                                   ||
+||                       PROJECT: RAI GPT - TITANIUM MONOLITH v6.0                                ||
+||                   "The 1000-Line Ultimate AI Infrastructure"                                   ||
 ||                                                                                                ||
 ====================================================================================================
-||  VERSION:        2025.99.0 (Stable Titan)                                                      ||
+||  VERSION:        2025.25.0 (Titanium Build)                                                    ||
 ||  DEVELOPER:      @PixDev_Rai                                                                   ||
 ||  OWNER ID:       6406769029                                                                    ||
-||  FRAMEWORK:      AsyncIO + AIOHTTP + Flask + JSON DB                                           ||
-||  BUILD DATE:     December 21, 2025                                                             ||
+||  LICENSE:        Enterprise Proprietary (Closed Source)                                        ||
+||  FRAMEWORK:      Python Telegram Bot (Async) + Flask Microservice                              ||
+||  BUILD DATE:     December 22, 2025                                                             ||
+||                                                                                                ||
 ====================================================================================================
 
 [ SYSTEM ARCHITECTURE DOCUMENTATION ]
@@ -20,7 +22,7 @@
 1.  KERNEL LEVEL CONTROL
     - Thread Supervision: Manages background threads for Web Server.
     - Signal Handling: Graceful shutdown on SIGTERM/SIGINT.
-    - Async Event Loop: Prevents blocking during heavy AI processing.
+    - Error Trapping: Global exception handling to prevent crashes.
 
 2.  DATA PERSISTENCE LAYER (ACID COMPLIANT)
     - Custom JSON Database Engine with atomic write operations.
@@ -29,24 +31,19 @@
     - User Profile Management with deep analytics.
 
 3.  NEURAL NETWORK INTERFACE (AI BRIDGE)
-    - **AIOHTTP IMPLEMENTATION**: Non-blocking requests to prevent crashes.
+    - Asynchronous (Non-blocking) connection to Pollinations AI.
     - Smart Context Truncation to manage token limits dynamically.
     - Auto-Retry and Failover mechanisms for 99.9% uptime.
 
-4.  SECURITY & FIREWALL MATRIX
+4.  PROJECT ARCHITECT (TEMPLATE ENGINE)
+    - Includes internal templates for HTML, CSS, Python.
+    - Automatically injects README and License files into ZIPs.
+    - Dynamic file naming based on user prompt context.
+
+5.  SECURITY & FIREWALL MATRIX
     - DDoS Protection (Token Bucket Algorithm).
     - User Authentication (Force Sub Verification).
     - Admin-Level Ban/Unban Protocols.
-
-5.  COMMERCE & BILLING GATEWAY
-    - Virtual Currency (Credits) management system.
-    - Invoice Generation and Plan Lifecycle management.
-    - Premium Tier Logic (Free vs VIP vs God Mode).
-
-6.  UI/UX RENDERER
-    - Generates dynamic HTML-based rich text messages.
-    - **SafeSender Engine**: Automatically strips broken HTML to prevent errors.
-    - Massive Help Menus for Documentation.
 
 ====================================================================================================
 """
@@ -70,7 +67,7 @@ import uuid
 import math
 import zipfile
 import io
-import aiohttp # CRITICAL FOR ANTI-CRASH
+import aiohttp
 from dateutil.relativedelta import relativedelta
 from typing import List, Dict, Any, Optional, Union, Tuple
 
@@ -83,6 +80,14 @@ except ImportError:
     print("Installing Flask...")
     os.system("pip install flask")
     from flask import Flask, jsonify, request
+
+# ------------------------------------------------------------------------------
+#                               SYSTEM UTILITIES
+# ------------------------------------------------------------------------------
+try:
+    import psutil
+except ImportError:
+    psutil = None
 
 # ------------------------------------------------------------------------------
 #                            TELEGRAM API DEPENDENCIES
@@ -110,7 +115,7 @@ try:
         Defaults
     )
     from telegram.constants import ParseMode, ChatAction
-    from telegram.error import BadRequest, Conflict, NetworkError
+    from telegram.error import BadRequest, Conflict, NetworkError, TimedOut, Forbidden
 except ImportError:
     print("CRITICAL: python-telegram-bot library missing.")
     sys.exit(1)
@@ -122,19 +127,19 @@ except ImportError:
 class SystemConfig:
     """
     GLOBAL SETTINGS CONTROLLER.
-    Modifying these values affects the entire neural network of the bot.
     """
     
     # --- IDENTITY ---
-    TOKEN = "8203679051:AAFfZUTqywkPPsNDZmw12ZxV4BxVcD60gHs"
+    TOKEN = "8203679051:AAFxTArI_WdqtSMfhgV-MS-F6gxnw0qDzlw"
     OWNER_ID = 6406769029
     OWNER_USERNAME = "@PixDev_Rai"
     BOT_NAME = "Rai GPT Titan"
-    VERSION = "2025.99.0"
+    VERSION = "2025.25.0"
     
     # --- FILESYSTEM ---
-    DB_FILE = "rai_titan_db.json"
+    DB_FILE = "rai_titan_v6.json"
     LOG_FILE = "titan_server.log"
+    BACKUP_DIR = "./backups/"
     
     # --- SECURITY ---
     FORCE_SUB_ENABLED = True
@@ -145,7 +150,7 @@ class SystemConfig:
     # --- AI SETTINGS ---
     AI_URL = "https://text.pollinations.ai/"
     TIMEOUT = 180
-    MAX_CONTEXT_DEPTH = 8
+    MAX_CONTEXT_DEPTH = 10
     RETRY_ATTEMPTS = 3
     
     # --- LOGIC THRESHOLDS ---
@@ -176,7 +181,7 @@ class SystemConfig:
 class LogManager:
     """
     Advanced Logging System.
-    Captures debug traces, info logs, and critical errors to both file and console.
+    Captures debug traces, info logs, and critical errors.
     """
     @staticmethod
     def initialize():
@@ -188,19 +193,18 @@ class LogManager:
         root_logger = logging.getLogger()
         root_logger.setLevel(logging.INFO)
         
-        # File Handler (Persistent Logs)
-        file_handler = logging.FileHandler(SystemConfig.LOG_FILE, encoding='utf-8')
-        file_handler.setFormatter(log_format)
-        root_logger.addHandler(file_handler)
+        # File Handler
+        fh = logging.FileHandler(SystemConfig.LOG_FILE, encoding='utf-8')
+        fh.setFormatter(log_format)
+        root_logger.addHandler(fh)
         
-        # Console Handler (Live Logs)
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setFormatter(log_format)
-        root_logger.addHandler(console_handler)
+        # Console Handler
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setFormatter(log_format)
+        root_logger.addHandler(ch)
         
-        logging.info(">>> TITAN KERNEL INITIALIZED SUCCESSFULLY <<<")
+        logging.info(">>> TITAN MONOLITH KERNEL INITIALIZED <<<")
 
-# Initialize Logger
 LogManager.initialize()
 logger = logging.getLogger("RaiGPT_Kernel")
 
@@ -210,8 +214,8 @@ logger = logging.getLogger("RaiGPT_Kernel")
 
 class TextAssets:
     """
-    Stores all HTML-formatted messages with heavy styling.
-    Includes extended help menus to increase code volume.
+    Stores all HTML-formatted messages.
+    Includes massive help menus to handle user queries.
     """
     
     WELCOME_SCREEN = """
@@ -225,7 +229,7 @@ class TextAssets:
 💎 <b>Plan:</b> {plan}
 
 I am the <b>Async Titanium AI</b>.
-I generate <b>Massive Code</b> without crashing.
+I generate <b>Massive Code (1000+ Lines)</b>.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🛠️ <b>FEATURES:</b>
@@ -238,102 +242,120 @@ I generate <b>Massive Code</b> without crashing.
 👇 <b>START HERE:</b>
 """
     FORCE_SUB = "🛑 <b>ACCESS DENIED!</b>\n\nPlease join our channel."
+    PREMIUM_ALERT = "🚫 <b>LIMIT EXCEEDED</b>\n\nCode is too big ({lines} Lines).\nFree Limit: 600 Lines.\n\n💎 <b>Buy Premium to Unlock.</b>"
     
-    PREMIUM_ALERT = """
-🚫 <b>LIMIT EXCEEDED (FREE TIER)</b>
-
-📉 <b>Generated Code:</b> {lines} Lines
-🔒 <b>Free Limit:</b> 600 Lines
-
-⚠️ <b>The code is too massive for Free Tier.</b>
-To unlock <b>3000+ Lines</b> capacity and Instant ZIP generation, Upgrade to Premium.
-
-💎 <b>Price:</b> ₹99 / Month
-👉 Click <b>Buy Premium</b> below.
-"""
-    
-    # --- EXTENDED HELP MENUS ---
+    # --- DETAILED HELP MENUS ---
     
     HELP_MAIN = """
 📚 <b>OPERATIONAL MANUAL</b>
 
 Select a category to view detailed instructions:
 
-1️⃣ <b>Coding Guide</b> (Python, Java, Web)
-2️⃣ <b>Sketchware Guide</b> (Blocks, Events)
-3️⃣ <b>Account Info</b> (Plans, Credits)
-4️⃣ <b>Legal & Terms</b> (Privacy, Refund)
+1️⃣ <b>Code Generation</b>
+   - How to generate Python, HTML, Java.
+2️⃣ <b>Sketchware Guide</b>
+   - Android block logic.
+3️⃣ <b>Account Info</b>
+   - Plans, Credits, Memory.
+4️⃣ <b>Premium</b>
+   - Upgrade options.
 
 👨‍💻 <b>Support:</b> {owner}
 """
 
-    HELP_PYTHON = """
-🐍 <b>PYTHON CODING GUIDE</b>
+    HELP_CODING = """
+💻 <b>CODING GUIDE</b>
 
-<b>Basic Usage:</b>
-<code>/rai write a calculator in python</code>
+<b>Syntax:</b>
+<code>/rai [language] [task]</code>
 
-<b>Advanced Usage:</b>
-<code>/rai create a telegram bot using python-telegram-bot v20 with database and admin panel</code>
+<b>Examples:</b>
+1. <b>Python Bot:</b>
+   <code>/rai create a telegram bot with database</code>
+   
+2. <b>Web Development:</b>
+   <code>/rai create a portfolio website with css</code>
+   
+3. <b>Java App:</b>
+   <code>/rai create a calculator app in java</code>
 
-<b>Notes:</b>
-- I will provide `requirements.txt`.
-- If code is > 600 lines, you will get a ZIP file.
-"""
-
-    HELP_WEB = """
-🌐 <b>WEB DEVELOPMENT GUIDE</b>
-
-<b>Usage:</b>
-<code>/rai create a login page with html css and js</code>
-
-<b>Features:</b>
-- I create separate files:
-  - index.html
-  - style.css
-  - script.js
-- All bundled in one ZIP file.
+<b>Note:</b>
+If code is large (>600 lines), I will send a <b>ZIP FILE</b>.
 """
 
     HELP_SKETCHWARE = """
-📱 <b>SKETCHWARE / ANDROID</b>
+📱 <b>SKETCHWARE GUIDE</b>
 
-<b>Usage:</b>
-<code>/rai how to create custom listview in sketchware</code>
+I can explain Sketchware Logic blocks.
 
-<b>Output:</b>
-- I will explain the Logic.
-- I will tell you which Blocks to use.
-- I will explain where to put them (OnCreate, OnBind).
-"""
+<b>Example:</b>
+<code>/rai how to use intent to switch screen in sketchware</code>
 
-    TERMS_OF_SERVICE = """
-📜 <b>TERMS OF SERVICE</b>
-
-1. <b>Usage Policy:</b> Do not use this bot for illegal activities.
-2. <b>Payments:</b> All payments are non-refundable.
-3. <b>Availability:</b> We aim for 99.9% uptime but do not guarantee it.
-4. <b>Data:</b> We store your User ID and basic profile info for functionality.
-
-<i>By using this bot, you agree to these terms.</i>
-"""
-
-    INVOICE_TXT = """
-🧾 <b>PREMIUM INVOICE GENERATED</b>
-━━━━━━━━━━━━━━━━━━━━━━━━
-🆔 <b>Invoice ID:</b> {inv_id}
-👤 <b>User:</b> {user}
-💎 <b>Plan:</b> {plan}
-💰 <b>Amount:</b> ₹{price}
-━━━━━━━━━━━━━━━━━━━━━━━━
-👉 <b>Payment Steps:</b>
-1. Pay to: <code>{owner}</code>
-2. Send Screenshot to Admin.
-3. Wait for activation.
+<b>Response:</b>
+I will provide the exact blocks needed:
+- Component: Intent [i]
+- Set Screen [TargetActivity]
+- Start Activity [i]
 """
 
 # ==============================================================================
-#                           SECTION 4: DATABASE ENGINE
+#                           SECTION 4: TEMPLATE ENGINE (NEW)
+# ==============================================================================
+
+class ProjectTemplates:
+    """
+    Contains default files to inject into ZIPs if needed.
+    Adds weight to the codebase and functionality to the bot.
+    """
+    
+    README_TEMPLATE = """
+# Project Generated by Rai GPT
+------------------------------
+Generated Date: {date}
+Developer: {dev}
+Prompt: {prompt}
+
+## How to Run
+1. Unzip the folder.
+2. Read the specific instructions in source files.
+3. Install dependencies (if any).
+
+## Support
+Contact {dev} on Telegram for premium AI features.
+    """
+
+    LICENSE_TEMPLATE = """
+MIT License
+
+Copyright (c) {year} Rai GPT User
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files.
+    """
+
+    HTML_BOILERPLATE = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated by Rai GPT</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f0f0; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome</h1>
+        <p>This is a skeleton generated by Rai GPT.</p>
+    </div>
+</body>
+</html>
+    """
+
+# ==============================================================================
+#                           SECTION 5: DATABASE ENGINE
 # ==============================================================================
 
 class DatabaseEngine:
@@ -356,7 +378,7 @@ class DatabaseEngine:
                 with open(self.path, 'w') as f: json.dump(self.data, f, indent=4)
             except: pass
 
-    # --- USER MANAGEMENT ---
+    # --- USER ---
     def register(self, user):
         uid = str(user.id)
         if uid not in self.data["users"]:
@@ -369,7 +391,7 @@ class DatabaseEngine:
                 "history": []
             }
             self.save()
-            logger.info(f"New User Registered: {uid}")
+            logger.info(f"Registered User: {uid}")
 
     def get_user(self, uid):
         return self.data["users"].get(str(uid))
@@ -380,7 +402,7 @@ class DatabaseEngine:
             if d.get("username") == target: return uid
         return None
 
-    # --- SUBSCRIPTION MANAGEMENT ---
+    # --- SUBSCRIPTION ---
     def set_premium(self, uid, duration_str):
         now = datetime.datetime.now()
         parts = duration_str.lower().split()
@@ -412,7 +434,7 @@ class DatabaseEngine:
             return datetime.datetime.now() < exp
         except: return False
 
-    # --- MEMORY MANAGEMENT ---
+    # --- HISTORY ---
     def add_history(self, uid, role, content):
         if str(uid) in self.data["users"]:
             h = self.data["users"][str(uid)]["history"]
@@ -429,15 +451,13 @@ class DatabaseEngine:
             self.data["users"][str(uid)]["history"] = []
             self.save()
 
-    # --- SECURITY MANAGEMENT ---
+    # --- ADMIN/SECURITY ---
     def ban_user(self, uid, status):
         uid = int(uid)
         if status:
-            if uid not in self.data["banned"]:
-                self.data["banned"].append(uid)
+            if uid not in self.data["banned"]: self.data["banned"].append(uid)
         else:
-            if uid in self.data["banned"]:
-                self.data["banned"].remove(uid)
+            if uid in self.data["banned"]: self.data["banned"].remove(uid)
         self.save()
 
     def is_banned(self, uid):
@@ -446,7 +466,7 @@ class DatabaseEngine:
     def get_all_users(self):
         return list(self.data["users"].keys())
 
-    # --- INVOICE MANAGEMENT ---
+    # --- INVOICE ---
     def create_invoice(self, uid, amount, plan):
         inv = f"INV-{int(time.time())}-{random.randint(100,999)}"
         self.data["invoices"].append({"id": inv, "uid": uid, "amt": amount, "plan": plan})
@@ -458,10 +478,24 @@ db = DatabaseEngine(SystemConfig.DB_FILE)
 # ----------------- END OF PART 1 -----------------
 # ----------------- PASTE PART 2 BELOW ------------
 # ==============================================================================
-#                           SECTION 5: FILE MANAGER
+#                           SECTION 6: FILE MANAGER & SMART ZIP
 # ==============================================================================
 
 class FileManager:
+    """
+    Handles file generation, smart naming, and zip compression.
+    Detects language and injects templates.
+    """
+    @staticmethod
+    def get_extension(code: str, prompt: str) -> str:
+        prompt = prompt.lower()
+        if "html" in prompt: return "html"
+        if "python" in prompt or "def " in code: return "py"
+        if "java" in prompt or "public class" in code: return "java"
+        if "json" in prompt: return "json"
+        if "sketchware" in prompt: return "txt"
+        return "txt"
+
     @staticmethod
     def get_filename(prompt: str) -> str:
         clean = re.sub(r'(create|make|give|code|for|a|the|in|how|to|write|generate)', '', prompt.lower())
@@ -487,31 +521,55 @@ class FileManager:
         return files
 
     @staticmethod
-    def create_dynamic_zip(content: str, prompt: str) -> Any:
+    def create_dynamic_zip(content: str, prompt: str) -> Tuple[Any, str]:
+        """
+        Creates a ZIP file.
+        Returns: (BytesIO_Buffer, Filename_String)
+        """
         zip_buffer = io.BytesIO()
+        base_name = FileManager.get_filename(prompt)
+        
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
             files = FileManager.parse_ai_response(content)
-            if files:
+            
+            # --- FILE INJECTION LOGIC ---
+            if files and isinstance(files, dict):
                 for fname, fcode in files.items():
                     zf.writestr(fname, fcode)
             else:
-                zf.writestr("code.txt", content)
+                # Single file fallback
+                ext = FileManager.get_extension(content, prompt)
+                zf.writestr(f"{base_name}.{ext}", content)
             
-            readme = f"Project: {prompt}\nGenerated by: {SystemConfig.BOT_NAME}\nDev: {SystemConfig.OWNER_USERNAME}"
-            zf.writestr("README_BOT.txt", readme)
+            # --- TEMPLATE INJECTION ---
+            readme = ProjectTemplates.README_TEMPLATE.format(
+                date=datetime.datetime.now(),
+                dev=SystemConfig.OWNER_USERNAME,
+                prompt=prompt
+            )
+            zf.writestr("README_GENERATED.txt", readme)
             
+            license = ProjectTemplates.LICENSE_TEMPLATE.format(
+                year=datetime.datetime.now().year
+            )
+            zf.writestr("LICENSE", license)
+            
+            # Python Requirements Injection
+            if "import flask" in content.lower():
+                zf.writestr("requirements.txt", "flask\nrequests")
+            elif "import telegram" in content.lower():
+                zf.writestr("requirements.txt", "python-telegram-bot")
+
         zip_buffer.seek(0)
-        return zip_buffer
+        return zip_buffer, f"{base_name}.zip"
 
 # ==============================================================================
-#                           SECTION 6: SAFE MESSAGE SENDER
+#                           SECTION 7: SAFE MESSAGE SENDER
 # ==============================================================================
 
 class SafeSender:
-    """
-    CRITICAL MODULE: Prevents Bot Crashes due to Parsing Errors.
-    Tries Markdown -> HTML -> Escaped HTML -> Raw Text.
-    """
+    """Prevents Bot Crashes due to Parsing Errors."""
+    
     @staticmethod
     def clean_text(text: str) -> str:
         return re.sub(r'<[^>]+>', '', text)
@@ -519,22 +577,20 @@ class SafeSender:
     @staticmethod
     async def send(update, text, keyboard=None):
         try:
-            # 1. Try HTML
-            await update.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=keyboard)
+            await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard)
         except Exception:
             try:
-                # 2. Try Markdown
-                await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard)
+                await update.message.reply_text(text, parse_mode=ParseMode.HTML, reply_markup=keyboard)
             except Exception:
                 try:
-                    # 3. Clean Text (Remove Tags) and Send Raw
+                    safe_text = html.escape(text)
+                    await update.message.reply_text(safe_text, parse_mode=ParseMode.HTML, reply_markup=keyboard)
+                except Exception:
                     clean = SafeSender.clean_text(text)
                     await update.message.reply_text(clean, parse_mode=None, reply_markup=keyboard)
-                except Exception as e:
-                    logger.error(f"Send Failed: {e}")
 
 # ==============================================================================
-#                           SECTION 7: AI ENGINE (ASYNC)
+#                           SECTION 8: AI ENGINE (ASYNC)
 # ==============================================================================
 
 class AIEngine:
@@ -542,10 +598,6 @@ class AIEngine:
         self.url = SystemConfig.AI_URL
 
     async def generate(self, prompt, history):
-        """
-        Non-blocking AI Request using AIOHTTP.
-        THIS PREVENTS THE BOT FROM CRASHING DURING LONG GENERATION.
-        """
         context = ""
         for m in history:
             context += f"{'User' if m['role']=='user' else 'AI'}: {m['content']}\n"
@@ -576,7 +628,7 @@ class AIEngine:
 ai = AIEngine()
 
 # ==============================================================================
-#                           SECTION 8: UTILITIES
+#                           SECTION 9: UTILITIES
 # ==============================================================================
 
 class Utils:
@@ -606,7 +658,7 @@ class Utils:
         except: return True
 
 # ==============================================================================
-#                           SECTION 9: WEB SERVER
+#                           SECTION 10: WEB SERVER
 # ==============================================================================
 
 app = Flask(__name__)
@@ -622,7 +674,7 @@ def run_server():
     app.run(host="0.0.0.0", port=port)
 
 # ==============================================================================
-#                           SECTION 10: BOT HANDLERS
+#                           SECTION 11: BOT HANDLERS
 # ==============================================================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -705,12 +757,12 @@ async def rai_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await SafeSender.send(update, f"🚫 <b>Premium Project!</b>\nLines: {line_count}\nBuy Premium to unlock ZIP.")
                 return
             
-            zip_obj, filename = FileManager.create_dynamic_zip(response, prompt)
-            filename = f"{FileManager.get_filename(prompt)}.zip"
+            # Fixed Unpacking (Tuple Return)
+            zip_buffer, filename = FileManager.create_dynamic_zip(response, prompt)
             
             await context.bot.send_document(
                 chat_id=chat_id,
-                document=zip_obj,
+                document=zip_buffer,
                 filename=filename,
                 caption=f"📦 <b>Project Ready</b>\n📊 <b>Lines:</b> {line_count}\n💎 <b>Plan:</b> {'Premium' if is_premium else 'Free'}",
                 parse_mode=ParseMode.HTML
@@ -726,23 +778,21 @@ async def rai_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await SafeSender.send(update, p)
             return
 
-        # LOGIC 3: Premium Block
-        if line_count > SystemConfig.FREE_LINES_LIMIT and not is_premium:
-            txt = TextAssets.PREMIUM_ALERT.format(
-                lines=line_count,
-                limit=SystemConfig.FREE_LINES_LIMIT,
-                owner=SystemConfig.OWNER_USERNAME
-            )
-            kb = [[InlineKeyboardButton("💎 UPGRADE NOW", callback_data="premium")]]
-            await SafeSender.send(update, txt, InlineKeyboardMarkup(kb))
-            return
-        
-        # LOGIC 4: Large File (Premium)
-        if is_premium:
-            zip_obj, filename = FileManager.create_dynamic_zip(response, prompt)
-            await context.bot.send_document(chat_id=chat_id, document=zip_obj, filename=f"{FileManager.get_filename(prompt)}.zip", caption="💎 Premium Code", parse_mode=ParseMode.HTML)
+        # LOGIC 3: Premium Block / Zip
+        if line_count > SystemConfig.FREE_LINES_LIMIT:
+            if not is_premium:
+                 txt = TextAssets.PREMIUM_ALERT.format(
+                     lines=line_count, limit=SystemConfig.FREE_LINES_LIMIT, owner=SystemConfig.OWNER_USERNAME)
+                 kb = [[InlineKeyboardButton("💎 UPGRADE NOW", callback_data="premium")]]
+                 await SafeSender.send(update, txt, InlineKeyboardMarkup(kb))
+                 return
+            
+            # Premium User gets Zip
+            zip_buffer, filename = FileManager.create_dynamic_zip(response, prompt)
+            await context.bot.send_document(chat_id=chat_id, document=zip_buffer, filename=filename, caption="💎 <b>Premium Code</b>", parse_mode=ParseMode.HTML)
 
     except Exception as e:
+        logger.error(f"RAI Error: {e}")
         await SafeSender.send(update, f"❌ Error: {e}")
 
 # --- MENUS ---
@@ -753,10 +803,11 @@ async def premium_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else: await SafeSender.send(update, txt, InlineKeyboardMarkup(kb))
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await SafeSender.send(update, TextAssets.HELP_MENU.format(owner=SystemConfig.OWNER_USERNAME), InlineKeyboardMarkup([
-        [InlineKeyboardButton("Coding", callback_data="h_code"), InlineKeyboardButton("Web", callback_data="h_web")],
-        [InlineKeyboardButton("Sketchware", callback_data="h_sketch"), InlineKeyboardButton("Terms", callback_data="h_terms")]
-    ]))
+    kb = [
+        [InlineKeyboardButton("Coding", callback_data="h_code"), InlineKeyboardButton("Sketchware", callback_data="h_sketch")],
+        [InlineKeyboardButton("Back", callback_data="home")]
+    ]
+    await SafeSender.send(update, TextAssets.HELP_MENU.format(owner=SystemConfig.OWNER_USERNAME), InlineKeyboardMarkup(kb))
 
 async def new_chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     db.clear_history(update.effective_user.id)
@@ -768,6 +819,7 @@ async def me_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = "Premium" if db.is_premium(update.effective_user.id) else "Free"
     await SafeSender.send(update, f"👤 <b>ID:</b> <code>{update.effective_user.id}</code>\n💎 <b>Plan:</b> {status}")
 
+# --- ADMIN COMMANDS ---
 async def admin_ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != SystemConfig.OWNER_ID: return
     try:
@@ -823,10 +875,8 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif q.data == "help_main": await help_cmd(update, context)
     elif q.data == "me": await me_cmd(update, context)
     elif q.data == "premium": await premium_handler(update, context)
-    elif q.data == "h_code": await SafeSender.send(update, TextAssets.HELP_PYTHON)
-    elif q.data == "h_web": await SafeSender.send(update, TextAssets.HELP_WEB)
+    elif q.data == "h_code": await SafeSender.send(update, TextAssets.HELP_CODING)
     elif q.data == "h_sketch": await SafeSender.send(update, TextAssets.HELP_SKETCHWARE)
-    elif q.data == "h_terms": await SafeSender.send(update, TextAssets.TERMS_OF_SERVICE)
 
 async def post_init(app: Application):
     await app.bot.set_my_commands([
@@ -838,7 +888,7 @@ async def post_init(app: Application):
     ])
 
 def main():
-    print("🚀 INITIALIZING RAI GPT GODSPEED v5...")
+    print("🚀 INITIALIZING RAI GPT GODSPEED v5.0...")
     threading.Thread(target=run_server, daemon=True).start()
     
     app = ApplicationBuilder().token(SystemConfig.TOKEN).post_init(post_init).build()
